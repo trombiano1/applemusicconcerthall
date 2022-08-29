@@ -11,26 +11,38 @@ let pieceNameHistory = {}
 
 $('searchButton').off();
 $('#searchButton').on('click', () => {
-    const queryComposerId = '186'; // Sibelius
-    const queryPieceId = '22016'; // 22016
-    getSongCandidates().then(
+    // const queryComposerId = '186'; // Sibelius
+    // const queryPieceId = '76'; // Tchaikovsky
+    // const queryPieceId = '22016'; // Sibelius 5
+    const queryPieceId = '7638'; // Tchaikovsky 5
+    getAllSongCandidates().then(
         function(value){
             let albums = value;
             albums.forEach(album => {
-                let guesserAPIArray = []
+                let guesserAPIArray = [];
+                let funcs = [];
                 album['songs'].forEach(song =>{
                     const composerName = song['composerName'];
                     const pieceName = song['name'].split(":")[0];
                     if (typeof pieceNameHistory[pieceName] === "undefined"){
                         guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
                         pieceNameHistory[pieceName] = true;
+                        if (guesserAPIArray.length >= 10){
+                            funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
+                            guesserAPIArray = [];
+                        }
                     }
                 });
-                const guesserAPIString = JSON.stringify(guesserAPIArray);
-                guessWorks(guesserAPIString, queryPieceId).then((value) => {
-                    if (value) {
-                        console.log(album['url']);
+                funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
+                Promise.all(funcs).then((values) => {
+                    // console.log(values);
+                    for (let i = 0; i < values.length; i++){
+                        if (values[i]) {
+                            console.log(album['url']);
+                            return;
+                        }
                     }
+                    console.log("done");
                 });
             });
         }
@@ -39,6 +51,7 @@ $('#searchButton').on('click', () => {
 
 function guessWorks(guesserAPIString, queryPieceId){
     return new Promise(function(resolve){
+        console.log(guesserAPIString, queryPieceId);
         const url = `https://api.openopus.org/dyn/work/guess?works=${guesserAPIString}`
         let request = new XMLHttpRequest();
         // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -90,11 +103,33 @@ function getComposerId(string){
     });
 }
 
-function getSongCandidates(){
+function getAllSongCandidates(offset){
     return new Promise(function(resolve){
+        let albums = [];
+        // ループ処理（再帰的に呼び出し）
+        function loop(i) {
+            // 非同期処理なのでPromiseを利用
+            getSongCandidates(i).then(function(value) {
+                // console.log(value);
+                albums = albums.concat(value[0]);
+                if (value[1]) {
+                    loop(i+25);
+                } else {
+                    resolve(albums);
+                }
+            });
+        }
+        // 初回実行
+        loop(0);
+    });
+}
+
+function getSongCandidates(offset){
+    return new Promise(function(resolve){
+        console.log(offset);
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=albums&term=Tchaikovsky+Symphony+1'
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
-        const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=songs&term=sibelius+symphony+5'
+        const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=tchaikovsky+symphony+5&types=albums`
 
         let request = new XMLHttpRequest();
         request.open("GET", url, true);
@@ -104,24 +139,38 @@ function getSongCandidates(){
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
-                let funcs = []
-                data['results']['songs']['data'].forEach(element => {
-                    const id = element['id'];
-                    const albumName = element['attributes']['albumName'];
-                    if (!searchedAlbumNames[albumName]){
-                        // getAlbum(id).then( // getAlbumが解消
-                        //     function(value){
-                        //         albums.push(getAlbum(id));
-                        //         resolve(albums);
-                        //     }
-                        // );
-                        funcs.push(getAlbum(id));
+                let funcs = [];
+                let cnt;
+                if (data['meta']['results']['order']['length'] == 0){
+                    cnt = false;
+                } else {
+                    if (data['results'].hasOwnProperty('songs') && data['results']['songs'].hasOwnProperty('next')){
+                        cnt = true;
+                    } else {
+                        cnt = false;
                     }
-                    searchedAlbumNames[albumName] = true;
-                });
+                    // for debug; cuts off at 100
+                    // if (offset > 100){
+                    //     cnt = false;
+                    // }
+                    data['results']['songs']['data'].forEach(element => {
+                        const id = element['id'];
+                        const albumName = element['attributes']['albumName'];
+                        if (!searchedAlbumNames[albumName]){
+                            // getAlbum(id).then( // getAlbumが解消
+                            //     function(value){
+                            //         albums.push(getAlbum(id));
+                            //         resolve(albums);
+                            //     }
+                            // );
+                            funcs.push(getAlbum(id));
+                        }
+                        searchedAlbumNames[albumName] = true;
+                    });
+                }
                 Promise.all(funcs).then(
                     function(values){
-                        resolve(values);
+                        resolve([values, cnt]);
                     }
                 )
             }
