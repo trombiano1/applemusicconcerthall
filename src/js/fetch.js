@@ -1,8 +1,10 @@
 "use strict";
+import dt from 'datatables.net';
 
 var $ = require('jquery');
 window.$ = $;
 
+var table = $('#myTable').DataTable({searching: false});
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
 let searchedAlbumNames = {}
@@ -21,12 +23,17 @@ $('#searchButton').on('click', () => {
             console.log("Albums retrieved");
             let albums = value;
             let funcs = [];
+            let trackNumbers = [];
             let remember = [];
+            // for each album
             albums.forEach(album => {
                 let guesserAPIArray = [];
                 let pieceNameHistory = {};
-                album['songs'].forEach(song =>{
+                let albumTrackNumbers = [];
+                // for each song
+                album['songs'].forEach(song => {
                     const composerName = song['composerName'];
+                    const tracknumber = song['trackNumber'];
                     let pieceName = song['name'].split(":")[0];
 
                     // name shenanigans
@@ -39,27 +46,51 @@ $('#searchButton').on('click', () => {
                         // アルバムタイトルにcomposerNameが入っていないか確認
                         if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
                             guesserAPIArray.push({'composer': queryComposerName, 'title': pieceName});// .split(", FP")[0]});
+                            albumTrackNumbers.push(tracknumber);
                             pieceNameHistory[pieceName] = true;
                         }
                     } else {
                         if (typeof pieceNameHistory[pieceName] === "undefined"){
                             guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
+                            albumTrackNumbers.push(tracknumber);
                             pieceNameHistory[pieceName] = true;
-                        } else {
-
                         }
                     }
                 });
                 // console.log(album, guesserAPIArray);
                 funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
+                trackNumbers.push(albumTrackNumbers);
                 remember.push(guesserAPIArray);
             });
             Promise.all(funcs).then((values) => {
-                console.log(values);
+                // console.log(values);
                 // console.log("Guesses retrieved");
+                table.row().remove();
                 for (let i = 0; i < albums.length; i++){
-                    if (values[i]) {
-                        console.log(albums[i]['url']);
+                    if (values[i] != -1 && albums[i]['songs'].length > trackNumbers[i][values[i]]) {
+                        // console.log(albums[i], trackNumbers[i][values[i]] - 1, trackNumbers[i], remember[i]);
+                        getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']).then((roles) => {
+                            table.row.add([
+                                `<img src=${albums[i]['artworkUrl'].replace('{w}x{h}', '150x150')}/>`,
+                                albums[i]['name'],
+                                roles['Orchestra'],
+                                roles['Conductor'],
+                                roles[''],
+                                albums[i]['releaseDate'],
+                                `<a href='${albums[i]['url']}'>Link</a>`
+                            ]).draw(false);
+                            console.log("a");
+                            // $('#myTable tr:last').after(`
+                            // <tr>
+                            //     <td><img src=${albums[i]['artworkUrl'].replace('{w}x{h}', '150x150')}/></td>
+                            //     <td>${albums[i]['name']}</td>
+                            //     <td>${roles['Orchestra']}</td>
+                            //     <td>${roles['Conductor']}</td>
+                            //     <td>${roles['']}</td>
+                            //     <td>${albums[i]['releaseDate']}</td>
+                            //     <td><a href='${albums[i]['url']}'>Link</a></td>
+                            // </tr>`);
+                        });
                     } else {
                         // console.log("false", albums[i]);
                     }
@@ -68,6 +99,35 @@ $('#searchButton').on('click', () => {
         }
     );
 });
+
+function getRoles(rolesString){
+    return new Promise(function(resolve){
+        let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
+        // console.log(rolesAPIString);
+        const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
+        let request = new XMLHttpRequest();
+        let result = {"Orchestra": [], "Conductor": [], "": []};
+        request.open("POST", url, true);
+        request.send();
+        request.onreadystatechange = function () {
+            if (request.readyState==4 && this.status == 200) {
+                const data = JSON.parse(this.responseText);
+                data['performers']['readable'].forEach(element => {
+                    if (element['role'] == "Orchestra"){
+                        result["Orchestra"] = element['name'];
+                    } else if (element['role'] == "Conductor") {
+                        result["Conductor"] = element['name'];
+                    } else {
+                        result[""].push(element['name']);
+                    }
+                });
+                // console.log(result);
+                
+                resolve(result);
+            }
+        }
+    });
+}
 
 function guessWorks(guesserAPIString, queryPieceId){
     return new Promise(function(resolve){
@@ -78,16 +138,17 @@ function guessWorks(guesserAPIString, queryPieceId){
         request.open("POST", url, true);
         request.send();
 
-        let found = false;
+        let found = -1;
 
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
+                // console.log(data, guesserAPIString)
                 if (data['works'] !== null){
                     for (let i = 0; i < data['works'].length; i++){
                         const element = data['works'][i];
                         if (queryPieceId == element['guessed']['id']){
-                            found = true;
+                            found = i;
                             break;
                         }
                     }
@@ -169,9 +230,9 @@ function getSongCandidates(offset){
                     resolve([],cnt);
                 } else {
                     // for debug; cuts off at 100
-                    // if (offset > 100){
-                    //     cnt = false;
-                    // }
+                    if (offset > 10){
+                        cnt = false;
+                    }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
@@ -180,6 +241,7 @@ function getSongCandidates(offset){
                         album["releaseDate"] = element['attributes']['releaseDate'];
                         album["recordLabel"] = element['attributes']['recordLabel'];
                         album["url"] = element['attributes']['url'];
+                        album["artworkUrl"] = element['attributes']['artwork']['url'];
                         funcs.push(getSongsInAlbum(album));
                     });
                     Promise.all(funcs).then(
@@ -243,12 +305,14 @@ function getSongsInAlbum(album){
                 var data = JSON.parse(this.responseText);
                 data['data'].forEach(element => {
                     let songInAlbum = {};
+                    // console.log(element['attributes']);
                     songInAlbum["artistName"] = element['attributes']['artistName'];
                     songInAlbum["attribution"] = element['attributes']['attribution'];
                     songInAlbum["composerName"] = element['attributes']['composerName'];
                     songInAlbum["movementCount"] = element['attributes']['movementCount'];
                     songInAlbum["movementName"] = element['attributes']['movementName'];
                     songInAlbum["movementNumber"] = element['attributes']['movementNumber'];
+                    songInAlbum["trackNumber"] = element['attributes']['trackNumber'];
                     songInAlbum["name"] = element['attributes']['name'];
                     songsInAlbum.push(songInAlbum);
                 });
