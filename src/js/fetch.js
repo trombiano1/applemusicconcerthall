@@ -4,11 +4,39 @@ import dt from 'datatables.net';
 var $ = require('jquery');
 window.$ = $;
 
-var table = $('#myTable').DataTable({searching: false});
+var table = $('#myTable').DataTable({
+    searching: true,
+    columnDefs: [
+        {
+            targets: 0,
+            width: '130px',
+            className: 'text-center align-middle',
+        }, 
+        {
+            targets: 1,
+            width: '50px',
+            className: 'text-center align-middle',
+        },
+        {
+            targets: 2,
+            className: 'align-middle',
+        },
+        {
+            targets: 3,
+            className: 'align-middle',
+        },
+        {
+            targets: 4,
+            className: 'align-middle',
+        }
+      ]
+});
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
 let searchedAlbumNames = {}
 let composerIdHistory = {}
+
+let orchestras = new Set();
 
 $('searchButton').off();
 $('#searchButton').on('click', () => {
@@ -69,17 +97,18 @@ $('#searchButton').on('click', () => {
                 for (let i = 0; i < albums.length; i++){
                     if (values[i] != -1 && albums[i]['songs'].length > trackNumbers[i][values[i]]) {
                         // console.log(albums[i], trackNumbers[i][values[i]] - 1, trackNumbers[i], remember[i]);
+                        // `<img src=${albums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/><br /><a href='${albums[i]['url']}' target="_blank">${albums[i]['name']}</a>`
                         getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']).then((roles) => {
                             table.row.add([
-                                `<img src=${albums[i]['artworkUrl'].replace('{w}x{h}', '150x150')}/>`,
-                                albums[i]['name'],
-                                roles['Orchestra'],
-                                roles['Conductor'],
+                                `<a href='${albums[i]['url']}' target="_blank">
+                                <img class='shadow-sm' src=${albums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
+                                albums[i]['releaseDate'].split('-')[0],
+                                `<div class='ic'><span class='orchicon'></span>${roles['Orchestra']}</div>`,
+                                `<div class='ic'><span class='batonicon'></span>${roles['Conductor']}</div>`,
                                 roles[''],
-                                albums[i]['releaseDate'],
-                                `<a href='${albums[i]['url']}'>Link</a>`
+                                // `<a href='${albums[i]['url']}'>Link</a>`
                             ]).draw(false);
-                            console.log("a");
+                            orchestras.add(roles['Orchestra']);
                             // $('#myTable tr:last').after(`
                             // <tr>
                             //     <td><img src=${albums[i]['artworkUrl'].replace('{w}x{h}', '150x150')}/></td>
@@ -112,6 +141,7 @@ function getRoles(rolesString){
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
+                console.log(data);
                 data['performers']['readable'].forEach(element => {
                     if (element['role'] == "Orchestra"){
                         result["Orchestra"] = element['name'];
@@ -229,10 +259,10 @@ function getSongCandidates(offset){
                     cnt = false;
                     resolve([],cnt);
                 } else {
-                    // for debug; cuts off at 100
-                    if (offset > 10){
-                        cnt = false;
-                    }
+                    // // for debug; cuts off at 100
+                    // if (offset > 4){
+                    //     cnt = false;
+                    // }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
@@ -242,6 +272,7 @@ function getSongCandidates(offset){
                         album["recordLabel"] = element['attributes']['recordLabel'];
                         album["url"] = element['attributes']['url'];
                         album["artworkUrl"] = element['attributes']['artwork']['url'];
+                        // console.log(element['attributes']['artwork']);
                         funcs.push(getSongsInAlbum(album));
                     });
                     Promise.all(funcs).then(

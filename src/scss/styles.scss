@@ -1,2 +1,47 @@
 // BootstrapのCSSをすべてインポート
 @import "~bootstrap/scss/bootstrap";
+
+body {
+    background: url('https://source.unsplash.com/twukN12EN7c/1920x1080') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+}
+
+.orchicon {
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    background: url('images/orchestra.png');
+    background-size: 20px 20px;
+    vertical-align: sub;
+    margin-right: 8px;
+    // background-color: #f00;
+    /* Other styles here */
+}
+
+.batonicon {
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    background: url('images/baton.png');
+    background-size: 16px 16px;
+    vertical-align: sub;
+    margin-right: 8px;
+    // background-color: #f00;
+    /* Other styles here */
+}
+
+.ic{
+    display: flex;
+    align-items: center;
+}
+
+// .batonicon {
+//     background: url('images/baton.png');
+//     height: 20px;
+//     width: 20px;
+//     display: block;
+//     /* Other styles here */
+// }
