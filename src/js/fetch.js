@@ -3,47 +3,67 @@
 var $ = require('jquery');
 window.$ = $;
 
-const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYyMTM3MzE5LCJpYXQiOjE2NjE1MzI1MTl9.C428yZYJjwSNd2z9llG68eWsfFfG8hMTmus7YqDFzs8BqWNGIXKOCiM8CWV_0pETSvhFz1nPfXIPm9b4wvOpBg"
+const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
 let searchedAlbumNames = {}
 let composerIdHistory = {}
-let pieceNameHistory = {}
 
 $('searchButton').off();
 $('#searchButton').on('click', () => {
+    const queryComposerName = 'Tchaikovsky';
     // const queryComposerId = '186'; // Sibelius
-    // const queryPieceId = '76'; // Tchaikovsky
-    // const queryPieceId = '22016'; // Sibelius 5
     const queryPieceId = '7638'; // Tchaikovsky 5
+    // const queryComposerName = 'Sibelius'; 
+    // const queryComposerId = '186'; // Sibelius
+    // const queryPieceId = '22016'; // Sibelius 5
     getAllSongCandidates().then(
         function(value){
+            console.log("Albums retrieved");
             let albums = value;
+            let funcs = [];
+            let remember = [];
             albums.forEach(album => {
                 let guesserAPIArray = [];
-                let funcs = [];
+                let pieceNameHistory = {};
                 album['songs'].forEach(song =>{
                     const composerName = song['composerName'];
-                    const pieceName = song['name'].split(":")[0];
-                    if (typeof pieceNameHistory[pieceName] === "undefined"){
-                        guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
-                        pieceNameHistory[pieceName] = true;
-                        if (guesserAPIArray.length >= 10){
-                            funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
-                            guesserAPIArray = [];
+                    let pieceName = song['name'].split(":")[0];
+
+                    // name shenanigans
+                    pieceName = pieceName.replace("No ", "No. ");
+                    
+                    // create guesserAPIArray for the album
+                    if (typeof composerName === "undefined" ){
+                        // composerNameが定義されていないCD
+                        // console.log(song["name"], album);
+                        // アルバムタイトルにcomposerNameが入っていないか確認
+                        if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
+                            guesserAPIArray.push({'composer': queryComposerName, 'title': pieceName});// .split(", FP")[0]});
+                            pieceNameHistory[pieceName] = true;
+                        }
+                    } else {
+                        if (typeof pieceNameHistory[pieceName] === "undefined"){
+                            guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
+                            pieceNameHistory[pieceName] = true;
+                        } else {
+
                         }
                     }
                 });
+                // console.log(album, guesserAPIArray);
                 funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
-                Promise.all(funcs).then((values) => {
-                    // console.log(values);
-                    for (let i = 0; i < values.length; i++){
-                        if (values[i]) {
-                            console.log(album['url']);
-                            return;
-                        }
+                remember.push(guesserAPIArray);
+            });
+            Promise.all(funcs).then((values) => {
+                console.log(values);
+                // console.log("Guesses retrieved");
+                for (let i = 0; i < albums.length; i++){
+                    if (values[i]) {
+                        console.log(albums[i]['url']);
+                    } else {
+                        // console.log("false", albums[i]);
                     }
-                    console.log("done");
-                });
+                }
             });
         }
     );
@@ -51,7 +71,7 @@ $('#searchButton').on('click', () => {
 
 function guessWorks(guesserAPIString, queryPieceId){
     return new Promise(function(resolve){
-        console.log(guesserAPIString, queryPieceId);
+        // console.log(guesserAPIString, queryPieceId);
         const url = `https://api.openopus.org/dyn/work/guess?works=${guesserAPIString}`
         let request = new XMLHttpRequest();
         // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -111,8 +131,8 @@ function getAllSongCandidates(offset){
             // 非同期処理なのでPromiseを利用
             getSongCandidates(i).then(function(value) {
                 // console.log(value);
-                albums = albums.concat(value[0]);
                 if (value[1]) {
+                    albums = albums.concat(value[0]);
                     loop(i+25);
                 } else {
                     resolve(albums);
@@ -129,89 +149,85 @@ function getSongCandidates(offset){
         console.log(offset);
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=albums&term=Tchaikovsky+Symphony+1'
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
-        const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=tchaikovsky+symphony+5&types=albums`
+        const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=Tchaikovsky+symphony+5&types=albums`
 
         let request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.setRequestHeader('Authorization', "Bearer "+developerToken);
         request.send();
+        
+        let albums = [];
 
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
                 let funcs = [];
-                let cnt;
-                if (data['meta']['results']['order']['length'] == 0){
+                let cnt = true;
+
+                if (data['meta']['results']['order']['length'] == '0'){
                     cnt = false;
+                    resolve([],cnt);
                 } else {
-                    if (data['results'].hasOwnProperty('songs') && data['results']['songs'].hasOwnProperty('next')){
-                        cnt = true;
-                    } else {
-                        cnt = false;
-                    }
                     // for debug; cuts off at 100
                     // if (offset > 100){
                     //     cnt = false;
                     // }
-                    data['results']['songs']['data'].forEach(element => {
-                        const id = element['id'];
-                        const albumName = element['attributes']['albumName'];
-                        if (!searchedAlbumNames[albumName]){
-                            // getAlbum(id).then( // getAlbumが解消
-                            //     function(value){
-                            //         albums.push(getAlbum(id));
-                            //         resolve(albums);
-                            //     }
-                            // );
-                            funcs.push(getAlbum(id));
-                        }
-                        searchedAlbumNames[albumName] = true;
+
+                    data['results']['albums']['data'].forEach(element => {
+                        let album = {};
+                        album["id"] = element['id'];
+                        album["name"] = element['attributes']['name'];
+                        album["releaseDate"] = element['attributes']['releaseDate'];
+                        album["recordLabel"] = element['attributes']['recordLabel'];
+                        album["url"] = element['attributes']['url'];
+                        funcs.push(getSongsInAlbum(album));
                     });
+                    Promise.all(funcs).then(
+                        function(values){
+                            resolve([values, cnt]);
+                        }
+                    )
                 }
-                Promise.all(funcs).then(
-                    function(values){
-                        resolve([values, cnt]);
-                    }
-                )
             }
         };
     });
 }
 
-function getAlbum(songId){
+// function getAlbum(songId){
+//     return new Promise(function(resolve){
+//         const url = `https://api.music.apple.com/v1/catalog/us/songs/${songId}/albums`
+
+//         let request = new XMLHttpRequest();
+//         request.open("GET", url, true);
+//         request.setRequestHeader('Authorization', "Bearer "+developerToken);
+//         request.send();
+
+//         let album = {}
+
+//         request.onreadystatechange = function () {
+//             if (request.readyState==4 && this.status == 200) {
+//                 let data = JSON.parse(this.responseText);
+
+//                 album["id"] = data['data'][0]['id'];
+//                 album["name"] = data['data'][0]['attributes']['name'];
+//                 album["releaseDate"] = data['data'][0]['attributes']['releaseDate'];
+//                 album["recordLabel"] = data['data'][0]['attributes']['recordLabel'];
+//                 album["url"] = data['data'][0]['attributes']['url'];
+
+//                 getSongsInAlbum(album["id"]).then(
+//                     function(value){
+//                         album["songs"] = value;
+//                         resolve(album);
+//                     }
+//                 );
+//             }
+//         }
+//     });
+// }
+
+function getSongsInAlbum(album){
     return new Promise(function(resolve){
-        const url = `https://api.music.apple.com/v1/catalog/us/songs/${songId}/albums`
-
-        let request = new XMLHttpRequest();
-        request.open("GET", url, true);
-        request.setRequestHeader('Authorization', "Bearer "+developerToken);
-        request.send();
-
-        let album = {}
-
-        request.onreadystatechange = function () {
-            if (request.readyState==4 && this.status == 200) {
-                let data = JSON.parse(this.responseText);
-
-                album["id"] = data['data'][0]['id'];
-                album["name"] = data['data'][0]['attributes']['name'];
-                album["releaseDate"] = data['data'][0]['attributes']['releaseDate'];
-                album["recordLabel"] = data['data'][0]['attributes']['recordLabel'];
-                album["url"] = data['data'][0]['attributes']['url'];
-
-                getSongsInAlbum(album["id"]).then(
-                    function(value){
-                        album["songs"] = value;
-                        resolve(album);
-                    }
-                );
-            }
-        }
-    });
-}
-
-function getSongsInAlbum(albumId){
-    return new Promise(function(resolve){
+        const albumId = album["id"];
         // const url = 'https://api.music.apple.com/v1/catalog/us/songs/' + id + '/albums'
         const url = `https://api.music.apple.com/v1/catalog/us/albums/${albumId}/tracks`
 
@@ -236,7 +252,8 @@ function getSongsInAlbum(albumId){
                     songInAlbum["name"] = element['attributes']['name'];
                     songsInAlbum.push(songInAlbum);
                 });
-                resolve(songsInAlbum);
+                album['songs'] = songsInAlbum;
+                resolve(album);
             }
         }
     });
