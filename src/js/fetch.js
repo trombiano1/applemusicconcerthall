@@ -17,7 +17,7 @@ let queryComposerId;
 // const queryPieceId = '7638'; // Tchaikovsky 5
 let queryPieceName;
 let queryPieceId;
-let queryPieceType = 'Orchestral';
+let queryPieceRoles = [];
 
 var resultTable = $('#resultTable').DataTable({
     searching: true,
@@ -166,7 +166,6 @@ function getResults(){
     console.log(queryComposerName);
     console.log(queryPieceId);
     console.log(queryPieceName);
-    console.log(queryPieceType);
     resultTable.clear().draw();
     // const queryComposerId = '186'; // Sibelius
     // const queryComposerName = 'Sibelius'; 
@@ -222,29 +221,64 @@ function getResults(){
                 $('#tableWrapper').removeClass('d-none');
                 console.log("Guesses retrieved");
                 resultTable.row().remove();
+
+                let getRolesFuncs = [];
+
                 for (let i = 0; i < albums.length; i++){
                     if (values[i] != -1 && albums[i]['songs'].length > trackNumbers[i][values[i]]) {
-                        getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']).then((roles) => {
-                            resultTable.row.add([
-                                `<a href='${albums[i]['url']}' target="_blank">
-                                <img class='shadow-sm albumart' src=${albums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
-                                albums[i]['releaseDate'].split('-')[0],
+                        getRolesFuncs.push(getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
+
+                        // getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']).then((roles) => {
+                        //     resultTable.row.add([
+                        //         `<a href='${albums[i]['url']}' target="_blank">
+                        //         <img class='shadow-sm albumart' src=${albums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
+                        //         albums[i]['releaseDate'].split('-')[0],
                                 
-                                ``,
+                        //         ``,
 
-                                `<div class='ic'><span class='orchicon'></span>${roles['Orchestra']}</div>`,
+                        //         `<div class='ic'><span class='orchicon'></span>${roles['Orchestra']}</div>`,
 
-                                `<div class='ic'><span class='batonicon'></span>${roles['Conductor']}</div>`,
+                        //         `<div class='ic'><span class='batonicon'></span>${roles['Conductor']}</div>`,
 
-                                ``
+                        //         ``
 
-                                // roles[''],
-                            ]).draw(false);
-                        });
+                        //         // roles[''],
+                        //     ]).draw(false);
+                        // });
                     } else {
                         // console.log("false", albums[i]);
                     }
                 }
+
+                Promise.all(getRolesFuncs).then((rolesList) => {
+                    const counts = {};
+                    rolesList.forEach(roles => {
+                        counts[Object.keys(roles).sort()] = (counts[Object.keys(roles).sort()] || 0) + 1;
+                    });
+                    console.log(counts);
+                    let maximum = -1;
+
+                    for (const [key, value] of Object.entries(counts)) {
+                        if (value > maximum){
+                            queryPieceRoles = key.split(',').filter(Boolean);
+                            maximum = value;
+                        }
+                    }
+                    console.log(queryPieceRoles);
+                    console.log(queryPieceRoles.length);
+                    for (let i = 0; i < 4; i++) {
+                        if (i < queryPieceRoles.length){
+                            $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
+                        } else {
+                            resultTable.column(i+2).visible(false);
+                        }
+                    }
+
+                    console.log(queryPieceRoles);
+
+                    // set header and hide columns
+
+                });
             });
         }
     );
@@ -291,9 +325,6 @@ function getRoles(rolesString){
                 //         result["Conductor"] = [""];
                 //     }
                 // }
-                if (queryPieceType == 'Concerto'){
-
-                }
 
                 // console.log(result);
                 
