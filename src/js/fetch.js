@@ -72,6 +72,9 @@ $(document.body).on('click', '.worklink' ,function(e){
     if (queryPieceName.includes(' in ') && queryPieceName.includes(' minor')){
         queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' minor').pop();
     }
+    if (queryPieceName.includes(' in ')){
+        queryPieceName = queryPieceName.split(" in ")[0];
+    }
 
     // get rid of 'no.'
     queryPieceName = queryPieceName.replace(" no. ", " ");
@@ -182,30 +185,34 @@ function getResults(){
             albums.forEach(album => {
                 let guesserAPIArray = [];
                 let pieceNameHistory = {};
-                let albumTrackNumbers = [];
+                let albumTrackNumbers = {};
                 // for each song
                 album['songs'].forEach(song => {
                     const composerName = song['composerName'];
                     const tracknumber = song['trackNumber'];
+
                     let pieceName = song['name'].split(":")[0];
 
                     // name shenanigans
                     pieceName = pieceName.replace("No ", "No. ");
                     
+                    let newString;
                     // create guesserAPIArray for the album
                     if (typeof composerName === "undefined" ){
                         // composerNameが定義されていないCD
                         // console.log(song["name"], album);
                         // アルバムタイトルにcomposerNameが入っていないか確認
                         if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
+                            newString = JSON.stringify({'composer': queryComposerName, 'title': pieceName});
                             guesserAPIArray.push({'composer': queryComposerName, 'title': pieceName});// .split(", FP")[0]});
-                            albumTrackNumbers.push(tracknumber);
+                            albumTrackNumbers[newString] = tracknumber;
                             pieceNameHistory[pieceName] = true;
                         }
                     } else {
                         if (typeof pieceNameHistory[pieceName] === "undefined"){
+                            newString = JSON.stringify({'composer': composerName, 'title': pieceName});
                             guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
-                            albumTrackNumbers.push(tracknumber);
+                            albumTrackNumbers[newString] = tracknumber;
                             pieceNameHistory[pieceName] = true;
                         }
                     }
@@ -223,30 +230,17 @@ function getResults(){
                 resultTable.row().remove();
 
                 let getRolesFuncs = [];
+                let validAlbums = [];
 
                 for (let i = 0; i < albums.length; i++){
-                    if (values[i] != -1 && albums[i]['songs'].length > trackNumbers[i][values[i]]) {
+                    if (values[i] != -1){
+                        // albums[i]['songs'].length > trackNumbers[i][values[i]]
+                        console.log(albums[i]);
+                        console.log(values[i]);
+                        console.log(trackNumbers[i]);
+                        console.log(trackNumbers[i][values[i]]-1);
                         getRolesFuncs.push(getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
-
-                        // getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']).then((roles) => {
-                        //     resultTable.row.add([
-                        //         `<a href='${albums[i]['url']}' target="_blank">
-                        //         <img class='shadow-sm albumart' src=${albums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
-                        //         albums[i]['releaseDate'].split('-')[0],
-                                
-                        //         ``,
-
-                        //         `<div class='ic'><span class='orchicon'></span>${roles['Orchestra']}</div>`,
-
-                        //         `<div class='ic'><span class='batonicon'></span>${roles['Conductor']}</div>`,
-
-                        //         ``
-
-                        //         // roles[''],
-                        //     ]).draw(false);
-                        // });
-                    } else {
-                        // console.log("false", albums[i]);
+                        validAlbums.push(albums[i]);
                     }
                 }
 
@@ -255,7 +249,7 @@ function getResults(){
                     rolesList.forEach(roles => {
                         counts[Object.keys(roles).sort()] = (counts[Object.keys(roles).sort()] || 0) + 1;
                     });
-                    console.log(counts);
+                    // console.log(counts);
                     let maximum = -1;
 
                     for (const [key, value] of Object.entries(counts)) {
@@ -264,8 +258,8 @@ function getResults(){
                             maximum = value;
                         }
                     }
-                    console.log(queryPieceRoles);
-                    console.log(queryPieceRoles.length);
+
+                    // set header and hide columns
                     for (let i = 0; i < 4; i++) {
                         if (i < queryPieceRoles.length){
                             $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
@@ -273,11 +267,36 @@ function getResults(){
                             resultTable.column(i+2).visible(false);
                         }
                     }
-
-                    console.log(queryPieceRoles);
-
-                    // set header and hide columns
-
+                    
+                    // console.log(validAlbums.length, rolesList.length);
+                    for (let i = 0; i < validAlbums.length; i++){
+                        let addList = [];
+                        for (let j = 0; j < queryPieceRoles.length; j++) {
+                            if (queryPieceRoles[j] in rolesList[i]){
+                                addList.push(rolesList[i][queryPieceRoles[j]]);
+                            }
+                        }
+                        for (let j = queryPieceRoles.length; j < 4; j++){
+                            addList.push('');
+                        }
+                        if (addList.length == 4){
+                            resultTable.row.add([
+                                `<a href='${validAlbums[i]['url']}' target="_blank">
+                                <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
+                                validAlbums[i]['releaseDate'].split('-')[0]
+                            ].concat(addList)).draw(false);
+                        } else {
+                            resultTable.row.add([
+                                `<a href='${validAlbums[i]['url']}' target="_blank">
+                                <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
+                                validAlbums[i]['releaseDate'].split('-')[0],
+                                JSON.stringify(rolesList[i]),
+                                '',
+                                '',
+                                ''
+                            ]).draw(false);
+                        }
+                    }
                 });
             });
         }
@@ -286,6 +305,9 @@ function getResults(){
 
 function getRoles(rolesString){
     return new Promise(function(resolve){
+        if (rolesString == "-1"){
+            resolve("");
+        }
         let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
         // console.log(rolesAPIString);
         const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
@@ -304,30 +326,6 @@ function getRoles(rolesString){
                         result[element['role']] = [element['name']];
                     }
                 });
-
-                // // set roles for orchestral
-                // if (queryPieceType == 'Orchestral'){
-                //     Object.keys(result).forEach(key => {
-                //         if (key != "Orchestra" && key != "Conductor"){
-                //             result[""].push(result[key]);
-                //         }
-                //     });
-                //     if ("Orchestra" in result && "Conductor" in result){
-                //         if (result["Orchestra"].length >= 1 && result["Conductor"].length == 0 && result[""].length == 1){
-                //             result["Conductor"] = result[""];
-                //             result[""] = [];
-                //         }
-                //     }
-                //     if (!"Orchestra" in result){
-                //         result["Orchestra"] = [""];
-                //     }
-                //     if (!"Conductor" in result){
-                //         result["Conductor"] = [""];
-                //     }
-                // }
-
-                // console.log(result);
-                
                 resolve(result);
             }
         }
@@ -348,12 +346,12 @@ function guessWorks(guesserAPIString, queryPieceId){
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
-                // console.log(data, guesserAPIString)
+                console.log(data, guesserAPIString);
                 if (data['works'] !== null){
                     for (let i = 0; i < data['works'].length; i++){
                         const element = data['works'][i];
                         if (queryPieceId == element['guessed']['id']){
-                            found = i;
+                            found = JSON.stringify(element['requested']);
                             break;
                         }
                     }
@@ -416,7 +414,7 @@ function getSongCandidates(offset){
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=albums&term=Tchaikovsky+Symphony+1'
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
         // const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=Tchaikovsky+symphony+5&types=albums`
-        const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
+        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
         // console.log(url);
 
         let request = new XMLHttpRequest();
@@ -499,7 +497,7 @@ function getSongsInAlbum(album){
     return new Promise(function(resolve){
         const albumId = album["id"];
         // const url = 'https://api.music.apple.com/v1/catalog/us/songs/' + id + '/albums'
-        const url = `https://api.music.apple.com/v1/catalog/us/albums/${albumId}/tracks`
+        const url = `https://api.music.apple.com/v1/catalog/jp/albums/${albumId}/tracks?l=en`
 
         var request = new XMLHttpRequest();
         request.open("GET", url, true);
