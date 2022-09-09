@@ -2,36 +2,156 @@
 @import "~bootstrap/scss/bootstrap";
 
 body {
-    background: url('https://source.unsplash.com/twukN12EN7c/1920x1080') no-repeat center center fixed;
+    background: url('images/background.jpg') no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     background-size: cover;
     -o-background-size: cover;
 }
 
-.orchicon {
-    height: 20px;
-    width: 20px;
-    display: inline-block;
-    background: url('images/orchestra.png');
-    background-size: 20px 20px;
-    vertical-align: sub;
-    margin-right: 8px;
-    // background-color: #f00;
-    /* Other styles here */
+.progress-bar-purple {
+    background-color: #800 !important;
 }
 
-.batonicon {
-    height: 16px;
-    width: 16px;
+// icons----------------------------------------------
+
+.icon{
+    height: 20px !important;
+    width: 20px !important;
+    min-width: 18px !important;
     display: inline-block;
-    background: url('images/baton.png');
-    background-size: 16px 16px;
     vertical-align: sub;
-    margin-right: 8px;
-    // background-color: #f00;
-    /* Other styles here */
+    margin-right: 4px;
 }
+
+.OrchestraIcon {
+    background: url('images/orchestra.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ConductorIcon {
+    background: url('images/baton.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.PianoIcon {
+    background: url('images/piano.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ViolinIcon {
+    background: url('images/violin.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ViolaIcon {
+    background: url('images/violin.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.CelloIcon {
+    background: url('images/violin.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.BassIcon {
+    background: url('images/violin.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.FluteIcon {
+    background: url('images/flute.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.OboeIcon {
+    background: url('images/oboe.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ClarinetIcon {
+    background: url('images/clarinet.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.BassoonIcon {
+    background: url('images/bassoon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.TrumpetIcon {
+    background: url('images/trumpet.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.HornIcon {
+    background: url('images/horn.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.TromboneIcon {
+    background: url('images/trombone.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.TubaIcon {
+    background: url('images/tuba.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.TimpaniIcon {
+    background: url('images/timpani.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.PercussionIcon {
+    display: inline-block;
+    background: url('images/marimba.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.MarimbaIcon {
+    background: url('images/marimba.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.OrganIcon {
+    background: url('images/organ.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.HarpIcon {
+    background: url('images/harp.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.EnsembleIcon {
+    background: url('images/ensemble.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+
 
 .ic{
     display: flex;

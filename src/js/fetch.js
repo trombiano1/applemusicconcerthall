@@ -10,21 +10,30 @@ const performerTypes = {'Chamber' : ['Ensemble'], 'Orchestral':['Conductor', 'Or
 var $ = require('jquery');
 window.$ = $;
 
-let searchedAlbumNames = {};
+// history
 let composerIdHistory = {};
+
+// query
 let queryComposerName;
 let queryComposerId;
-// const queryPieceId = '7638'; // Tchaikovsky 5
 let queryPieceName;
 let queryPieceId;
 let queryPieceRoles = [];
 
+// progress bar
+let totalAlbums;
+let doneAlbums;
+let totalGuesses;
+let doneGuesses;
+let totalRoles;
+let doneRoles;
+
 var resultTable = $('#resultTable').DataTable({
-    searching: true,
+    searching: false,
     columnDefs: [
         {
             targets: 0,
-            width: '130px',
+            width: '100px',
             className: 'text-center align-middle',
         }, 
         {
@@ -51,6 +60,10 @@ var resultTable = $('#resultTable').DataTable({
       ]
 });
 
+$(function() { 
+    $("#progressbar").addClass("progress-bar-purple");
+ });
+
 $(document.body).on('click', '.worklink' ,function(e){
     $('#worksCollapse').removeClass('show');
 
@@ -58,11 +71,12 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName = $(this).html();
 
     // set button name
-    document.getElementById('selectedWork').innerHTML = queryPieceName;
+    $('#selectedWork').html(queryPieceName);
 
-    // show table container and spinner
+    // show table container and progress
     $('#tableContainer').removeClass('d-none');
-    $('#spinner').removeClass('d-none');
+    $('#progress').removeClass('d-none');
+    $('#tableWrapper').addClass('d-none');
 
     console.log(queryPieceName);
     // get rid of 'in E major'
@@ -90,11 +104,17 @@ $(document.body).on('click', '.worklink' ,function(e){
 
     //get rid of end space
     queryPieceName.replace(/\s+$/, '');
-
+    
+    $('#progressbar').attr('style', 'width: 2%;');
     getResults();
 });
 
 $('#composer').on('input', () => {
+    // hide others
+    $('#genreContainer').addClass('d-none');
+    $('#workContainer').addClass('d-none');
+    $('#worksCollapse').removeClass('show');
+
     var val = document.getElementById("composer").value;
     var opts = document.getElementById('composersdatalist').childNodes;
     for (var i = 0; i < opts.length; i++) {
@@ -103,22 +123,21 @@ $('#composer').on('input', () => {
         // yourCallbackHere()
         queryComposerId = COMPOSER_IDS[opts[i].value];
         queryComposerName = opts[i].value.split(/ /).pop();
+
         getGenres();
-        $('#genreContainer').removeClass('d-none');
         break;
       }
     }
 });
 
 $('#genre').on('change', function() {
+    $('#selectedWork').html("Select work from below:");
     listWorks(document.getElementById('genre').value);
     // $('#worksCollapse').collapse();
-    $('#workContainer').removeClass('d-none');
-    $('#worksCollapse').addClass('show');
 });
 
 function listWorks(genre){
-    // console.log(guesserAPIString, queryPieceId);
+
     const url = `https://api.openopus.org/work/list/composer/${queryComposerId}/${genre}.json`
     let request = new XMLHttpRequest();
     // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -128,20 +147,24 @@ function listWorks(genre){
     request.onreadystatechange = function () {
         if (request.readyState==4 && this.status == 200) {
             const data = JSON.parse(this.responseText);
-            // console.log(data, guesserAPIString)
-            // console.log(data);
             let HTMLString = "";
-            data['works'].forEach(work => {
+            let newData = data['works'].sort(function(first, second) {
+                return first['title'].localeCompare(second['title']);
+            });
+            newData.forEach(work => {
                 HTMLString += `<a href="#" class="worklink list-group-item list-group-item-action w-100" value="${work['id']}">${work['title']}</a>`;
                 // HTMLString += `<li class="list-group-item" value=${work['id']}>${work['title']}</li>`;
             });
             document.getElementById('worksList').innerHTML = HTMLString;
+            $('#workContainer').removeClass('d-none');
+            $('#worksCollapse').addClass('show');
+        } else if (request.readyState==4 && this.status != 200){
+            showErrorModal(this.tatus);
         }
     }
 }
 
 function getGenres(){
-    // console.log(guesserAPIString, queryPieceId);
     const url = `https://api.openopus.org/genre/list/composer/${queryComposerId}.json`
     let request = new XMLHttpRequest();
     // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -151,8 +174,6 @@ function getGenres(){
     request.onreadystatechange = function () {
         if (request.readyState==4 && this.status == 200) {
             const data = JSON.parse(this.responseText);
-            // console.log(data, guesserAPIString)
-            // console.log(data['genres']);
             let HTMLString = `<option value="Select genre" disabled selected>Select genre...</option>`;
             data['genres'].forEach(genre => {
                 if (genre != "Popular" && genre != "Recommended"){
@@ -160,11 +181,22 @@ function getGenres(){
                 }
             });
             document.getElementById('genre').innerHTML = HTMLString;
+            $('#genreContainer').removeClass('d-none');
+        } else if (request.readyState==4 && this.status != 200){
+            showErrorModal(this.tatus);
         }
     }
 }
 
 function getResults(){
+    // reset progress bar
+    totalAlbums = 300;
+    doneAlbums = 0;
+    totalGuesses = 0;
+    doneGuesses = 0;
+    totalRoles = 0;
+    doneRoles = 0;
+
     console.log(queryComposerId);
     console.log(queryComposerName);
     console.log(queryPieceId);
@@ -177,6 +209,7 @@ function getResults(){
     getAllSongCandidates().then(
         function(value){
             console.log("Albums retrieved");
+            // $('#progressbar').attr('style', 'width: 45%;');
             let albums = value;
             let funcs = [];
             let trackNumbers = [];
@@ -200,7 +233,6 @@ function getResults(){
                     // create guesserAPIArray for the album
                     if (typeof composerName === "undefined" ){
                         // composerNameが定義されていないCD
-                        // console.log(song["name"], album);
                         // アルバムタイトルにcomposerNameが入っていないか確認
                         if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
                             newString = JSON.stringify({'composer': queryComposerName, 'title': pieceName});
@@ -217,15 +249,13 @@ function getResults(){
                         }
                     }
                 });
-                // console.log(album, guesserAPIArray);
+
                 funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
                 trackNumbers.push(albumTrackNumbers);
                 remember.push(guesserAPIArray);
             });
+            totalGuesses = funcs.length;
             Promise.all(funcs).then((values) => {
-                // console.log(values);
-                $('#spinner').addClass('d-none');
-                $('#tableWrapper').removeClass('d-none');
                 console.log("Guesses retrieved");
                 resultTable.row().remove();
 
@@ -234,22 +264,19 @@ function getResults(){
 
                 for (let i = 0; i < albums.length; i++){
                     if (values[i] != -1){
-                        // albums[i]['songs'].length > trackNumbers[i][values[i]]
-                        console.log(albums[i]);
-                        console.log(values[i]);
-                        console.log(trackNumbers[i]);
-                        console.log(trackNumbers[i][values[i]]-1);
                         getRolesFuncs.push(getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
                         validAlbums.push(albums[i]);
                     }
                 }
 
-                Promise.all(getRolesFuncs).then((rolesList) => {
+                totalRoles = getRolesFuncs.length;
+
+                Promise.all(getRolesFuncs).then((retrievedRoles) => {
                     const counts = {};
-                    rolesList.forEach(roles => {
+                    console.log("Roles retrieved");
+                    retrievedRoles.forEach(roles => {
                         counts[Object.keys(roles).sort()] = (counts[Object.keys(roles).sort()] || 0) + 1;
                     });
-                    // console.log(counts);
                     let maximum = -1;
 
                     for (const [key, value] of Object.entries(counts)) {
@@ -263,26 +290,85 @@ function getResults(){
                     for (let i = 0; i < 4; i++) {
                         if (i < queryPieceRoles.length){
                             $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
+                            resultTable.column(i+2).visible(true);
                         } else {
                             resultTable.column(i+2).visible(false);
                         }
                     }
+                    $("#resultTable").width("100%");
+
+                    // show table
+                    $('#progress').addClass('d-none');
+                    $('#tableWrapper').removeClass('d-none');
                     
-                    // console.log(validAlbums.length, rolesList.length);
                     for (let i = 0; i < validAlbums.length; i++){
-                        let addList = [];
+                        let assignedRoles = {};
+                        let invalid;
+                        let validCount = 0;
+                        let invalidCount = 0;
+
+                        // if retrieved role is in piece roles
                         for (let j = 0; j < queryPieceRoles.length; j++) {
-                            if (queryPieceRoles[j] in rolesList[i]){
-                                addList.push(rolesList[i][queryPieceRoles[j]]);
+                            if (queryPieceRoles[j] in retrievedRoles[i]){
+                                assignedRoles[queryPieceRoles[j]] = retrievedRoles[i][queryPieceRoles[j]];
+                                validCount++;
+                            }
+                        }
+                        
+                        // if weird role is retrieved
+                        for (const [key, value] of Object.entries(retrievedRoles[i])) {
+                            if (!queryPieceRoles.includes(key)) {
+                                invalid = value;
+                                invalidCount++;
+                            }
+                        }
+                        // if one is missing and one is invalid, assume that is the one
+                        if (validCount = queryPieceRoles.length - 1 && invalidCount == 1 && invalid !== undefined){
+                            for (let j = 0; j < queryPieceRoles.length; j++) {
+                                if (!(queryPieceRoles[j] in assignedRoles)){
+                                    assignedRoles[queryPieceRoles[j]] = invalid;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // // add to addList
+                        // let addList = [];
+                        // for (let j = 0; j < queryPieceRoles.length; j++){
+                        //     if (queryPieceRoles[j] in assignedRoles) {
+                        //         addList.push(assignedRoles[queryPieceRoles[j]]);
+                        //     }
+                        // }
+                        // for (let j = queryPieceRoles.length; j < 4; j++){
+                        //     addList.push('a');
+                        // }
+                        let addList = [];
+                        for (let j = 0; j < queryPieceRoles.length; j++){
+                            if (queryPieceRoles[j] in assignedRoles) {
+                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div>${assignedRoles[queryPieceRoles[j]][0]}</div></div>`);
+                            } else {
+                                addList.push("");
                             }
                         }
                         for (let j = queryPieceRoles.length; j < 4; j++){
-                            addList.push('');
+                            addList.push("");
                         }
+
+                        // let addList = [];
+                        // for (let j = 0; j < queryPieceRoles.length; j++) {
+                        //     if (queryPieceRoles[j] in retrievedRoles[i]){
+                        //         addList.push(retrievedRoles[i][queryPieceRoles[j]]);
+                        //     }
+                        // }
+                        // for (let j = queryPieceRoles.length; j < 4; j++){
+                        //     addList.push('');
+                        // }
+
+                        // if enough infomration
                         if (addList.length == 4){
                             resultTable.row.add([
                                 `<a href='${validAlbums[i]['url']}' target="_blank">
-                                <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
+                                <img class='shadow-sm albumart' style='width: 100px !important;' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
                                 validAlbums[i]['releaseDate'].split('-')[0]
                             ].concat(addList)).draw(false);
                         } else {
@@ -290,7 +376,7 @@ function getResults(){
                                 `<a href='${validAlbums[i]['url']}' target="_blank">
                                 <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
                                 validAlbums[i]['releaseDate'].split('-')[0],
-                                JSON.stringify(rolesList[i]),
+                                JSON.stringify(addList),
                                 '',
                                 '',
                                 ''
@@ -309,16 +395,14 @@ function getRoles(rolesString){
             resolve("");
         }
         let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
-        // console.log(rolesAPIString);
         const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
         let request = new XMLHttpRequest();
-        let result = {"": []};
+        let result = {};
         request.open("POST", url, true);
         request.send();
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
-                // console.log(data);
                 data['performers']['readable'].forEach(element => {
                     if (element['role'] in result){
                         result[element['role']].push(element['name']);
@@ -326,15 +410,22 @@ function getRoles(rolesString){
                         result[element['role']] = [element['name']];
                     }
                 });
+                doneRoles++;
+                $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
                 resolve(result);
+            } else if (request.readyState==4 && this.status != 200){
+                showErrorModal(this.tatus);
             }
         }
     });
 }
 
+function showErrorModal(status) {
+    $('#exampleModal').modal('show');
+}
+
 function guessWorks(guesserAPIString, queryPieceId){
     return new Promise(function(resolve){
-        // console.log(guesserAPIString, queryPieceId);
         const url = `https://api.openopus.org/dyn/work/guess?works=${guesserAPIString}`
         let request = new XMLHttpRequest();
         // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -346,7 +437,6 @@ function guessWorks(guesserAPIString, queryPieceId){
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
-                console.log(data, guesserAPIString);
                 if (data['works'] !== null){
                     for (let i = 0; i < data['works'].length; i++){
                         const element = data['works'][i];
@@ -356,7 +446,11 @@ function guessWorks(guesserAPIString, queryPieceId){
                         }
                     }
                 }
+                doneGuesses++;
+                $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 resolve(found);
+            } else if (request.readyState==4 && this.status != 200){
+                showErrorModal(this.tatus);
             }
         }
     });
@@ -382,6 +476,8 @@ function getComposerId(string){
                 composerIdHistory[string] = composerId;
                 // Return first hit
                 resolve(data['composers'][0]['id'])
+            } else if (request.readyState==4 && this.status != 200){
+                showErrorModal(this.tatus);
             }
         };
     });
@@ -394,7 +490,6 @@ function getAllSongCandidates(offset){
         function loop(i) {
             // 非同期処理なのでPromiseを利用
             getSongCandidates(i).then(function(value) {
-                // console.log(value);
                 if (value[1]) {
                     albums = albums.concat(value[0]);
                     loop(i+25);
@@ -415,7 +510,6 @@ function getSongCandidates(offset){
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
         // const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=Tchaikovsky+symphony+5&types=albums`
         const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
-        // console.log(url);
 
         let request = new XMLHttpRequest();
         request.open("GET", url, true);
@@ -447,11 +541,12 @@ function getSongCandidates(offset){
                         album["recordLabel"] = element['attributes']['recordLabel'];
                         album["url"] = element['attributes']['url'];
                         album["artworkUrl"] = element['attributes']['artwork']['url'];
-                        // console.log(element['attributes']['artwork']);
                         funcs.push(getSongsInAlbum(album));
                     });
                     Promise.all(funcs).then(
                         function(values){
+                            doneAlbums += 25;
+                            $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
                             resolve([values, cnt]);
                         }
                     )
@@ -460,38 +555,6 @@ function getSongCandidates(offset){
         };
     });
 }
-
-// function getAlbum(songId){
-//     return new Promise(function(resolve){
-//         const url = `https://api.music.apple.com/v1/catalog/us/songs/${songId}/albums`
-
-//         let request = new XMLHttpRequest();
-//         request.open("GET", url, true);
-//         request.setRequestHeader('Authorization', "Bearer "+developerToken);
-//         request.send();
-
-//         let album = {}
-
-//         request.onreadystatechange = function () {
-//             if (request.readyState==4 && this.status == 200) {
-//                 let data = JSON.parse(this.responseText);
-
-//                 album["id"] = data['data'][0]['id'];
-//                 album["name"] = data['data'][0]['attributes']['name'];
-//                 album["releaseDate"] = data['data'][0]['attributes']['releaseDate'];
-//                 album["recordLabel"] = data['data'][0]['attributes']['recordLabel'];
-//                 album["url"] = data['data'][0]['attributes']['url'];
-
-//                 getSongsInAlbum(album["id"]).then(
-//                     function(value){
-//                         album["songs"] = value;
-//                         resolve(album);
-//                     }
-//                 );
-//             }
-//         }
-//     });
-// }
 
 function getSongsInAlbum(album){
     return new Promise(function(resolve){
@@ -511,7 +574,6 @@ function getSongsInAlbum(album){
                 var data = JSON.parse(this.responseText);
                 data['data'].forEach(element => {
                     let songInAlbum = {};
-                    // console.log(element['attributes']);
                     songInAlbum["artistName"] = element['attributes']['artistName'];
                     songInAlbum["attribution"] = element['attributes']['attribution'];
                     songInAlbum["composerName"] = element['attributes']['composerName'];
@@ -524,6 +586,8 @@ function getSongsInAlbum(album){
                 });
                 album['songs'] = songsInAlbum;
                 resolve(album);
+            } else if (request.readyState==4 && this.status != 200){
+                showErrorModal(this.tatus);
             }
         }
     });
