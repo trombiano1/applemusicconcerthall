@@ -1,5 +1,6 @@
 "use strict";
 import dt from 'datatables.net';
+import { Modal } from 'bootstrap'
 
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
@@ -106,6 +107,13 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName.replace(/\s+$/, '');
     
     $('#progressbar').attr('style', 'width: 2%;');
+
+    // disable buttons until finish
+    $("#composer").attr('disabled', true);
+    $("#genre").attr('disabled', true);
+    $("#selectedWork").attr('data-bs-toggle', '');
+    $("#selectedWork").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
+
     getResults();
 });
 
@@ -297,6 +305,13 @@ function getResults(){
                     }
                     $("#resultTable").width("100%");
 
+                    // reenable search
+                    // disable buttons until finish
+                    $("#composer").attr('disabled', false);
+                    $("#genre").attr('disabled', false);
+                    $("#selectedWork").attr('data-bs-toggle', 'collapse');
+                    $("#selectedWork").attr('style', 'text-decoration: none !important;');
+
                     // show table
                     $('#progress').addClass('d-none');
                     $('#tableWrapper').removeClass('d-none');
@@ -421,7 +436,13 @@ function getRoles(rolesString){
 }
 
 function showErrorModal(status) {
-    $('#exampleModal').modal('show');
+    console.log(status);
+    const labels = {429: "429 Too Many Requests", 502: "502 Bad Gateway"};
+    const contents = {429: "Many people seem to be using this application. It should improve when you reload. Sorry for the inconvenience. <br />利用者数が多く, リクエスト数が制限に達してしまいました. 再読み込みすると改善します.", 502: "Server is down. It should improve when you reload. Sorry for the inconvenience. <br />サーバーがダウンしています. ページを再読み込みしてください."};
+    $('#errorModalLabel').html(labels[status]);
+    $('#errorModalContent').html(contents[status]);
+    let myModal = new Modal(document.getElementById('errorModal'));
+    myModal.show();
 }
 
 function guessWorks(guesserAPIString, queryPieceId){
