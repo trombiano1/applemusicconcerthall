@@ -62,7 +62,7 @@ var resultTable = $('#resultTable').DataTable({
 });
 
 $(function() { 
-    $("#progressbar").addClass("progress-bar-purple");
+    $("#progressbar").addClass("dark-red-background");
  });
 
 $(document.body).on('click', '.worklink' ,function(e){

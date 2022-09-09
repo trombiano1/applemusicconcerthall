@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Apple Classical Beta</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.2/css/fontawesome.min.css" integrity="sha384-X8QTME3FCg1DLb58++lPvsjbQoCT9bp3MsUU3grbIny/3ZwUJkRNO8NPW6zqzuW9" crossorigin="anonymous">
+  </head>
+  <body>
+    <!-- Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="errorModalContent">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    <!-- <button type="button" class="btn btn-primary">OK</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+      <div class="container-md mt-5 text-light">
+        <h1>Concerthall</h1>
+      </div>
+        <div class="container-md shadow-sm p-3 mt-4 mb-5 bg-body rounded">
+                <div class="input-group mt-3 mb-3">
+                    <span class="input-group-text" id="composerLabel">Composer</span>
+                    <input type="text" class="form-control" placeholder="Start typing..." aria-label="Start typing..." aria-describedby="composerLabel"  list="composersdatalist" id="composer">
+                </div>
+                <datalist id="composersdatalist">
+                    <option value='John Adams'>Adams</option>
+                    <option value='Thomas Adès'>Adès</option>
+                    <option value='Isaac Albéniz'>Albéniz</option>
+                    <option value='Tomaso Albinoni'>Albinoni</option>
+                    <option value='George Antheil'>Antheil</option>
+                    <option value='Malcolm Arnold'>Arnold</option>
+                    <option value='Milton Babbitt'>Babbitt</option>
+                    <option value='Johann Sebastian Bach'>Bach</option>
+                    <option value='Carl Philipp Emanuel Bach'>Bach, C.P.E.</option>
+                    <option value='Johann Christian Bach'>Bach, J.C.</option>
+                    <option value='Mily Balakirev'>Balakirev</option>
+                    <option value='Samuel Barber'>Barber</option>
+                    <option value='Béla Bartók'>Bartók</option>
+                    <option value='Arnold Bax'>Bax</option>
+                    <option value='Ludwig van Beethoven'>Beethoven</option>
+                    <option value='Vincenzo Bellini'>Bellini</option>
+                    <option value='Alban Berg'>Berg</option>
+                    <option value='Luciano Berio'>Berio</option>
+                    <option value='Hector Berlioz'>Berlioz</option>
+                    <option value='Leonard Bernstein'>Bernstein</option>
+                    <option value='Franz Berwald'>Berwald</option>
+                    <option value='Heinrich Franz von Biber'>Biber</option>
+                    <option value='Harrison Birtwistle'>Birtwistle</option>
+                    <option value='Georges Bizet'>Bizet</option>
+                    <option value='Ernest Bloch'>Bloch</option>
+                    <option value='Luigi Boccherini'>Boccherini</option>
+                    <option value='Alexander Borodin'>Borodin</option>
+                    <option value='Pierre Boulez'>Boulez</option>
+                    <option value='Joly Braga Santos'>Braga Santos</option>
+                    <option value='Johannes Brahms'>Brahms</option>
+                    <option value='Benjamin Britten'>Britten</option>
+                    <option value='Max Bruch'>Bruch</option>
+                    <option value='Anton Bruckner'>Bruckner</option>
+                    <option value='Ferruccio Busoni'>Busoni</option>
+                    <option value='Dietrich Buxtehude'>Buxtehude</option>
+                    <option value='William Byrd'>Byrd</option>
+                    <option value='John Cage'>Cage</option>
+                    <option value='Camargo Guarnieri'>Camargo Guarnieri</option>
+                    <option value='Elliott Carter'>Carter</option>
+                    <option value='Emmanuel Chabrier'>Chabrier</option>
+                    <option value='Marc-Antoine Charpentier'>Charpentier</option>
+                    <option value='Ernest Chausson'>Chausson</option>
+                    <option value='Carlos Chávez'>Chávez</option>
+                    <option value='Luigi Cherubini'>Cherubini</option>
+                    <option value='Frédéric Chopin'>Chopin</option>
+                    <option value='Aaron Copland'>Copland</option>
+                    <option value='Arcangelo Corelli'>Corelli</option>
+                    <option value='John Corigliano'>Corigliano</option>
+                    <option value='François Couperin'>Couperin</option>
+                    <option value='George Crumb'>Crumb</option>
+                    <option value='César Cui'>Cui</option>
+                    <option value='Vincent d'Indy'>d'Indy</option>
+                    <option value='Michael Daugherty'>Daugherty</option>
+                    <option value='Claude Debussy'>Debussy</option>
+                    <option value='Léo Delibes'>Delibes</option>
+                    <option value='Frederick Delius'>Delius</option>
+                    <option value='Josquin Des Prez'>Des Prez</option>
+                    <option value='Karl Ditters von Dittersdorf'>Dittersdorf</option>
+                    <option value='Ernst von Dohnányi'>Dohnányi</option>
+                    <option value='Gaetano Donizetti'>Donizetti</option>
+                    <option value='John Dowland'>Dowland</option>
+                    <option value='Guillaume Dufay'>Dufay</option>
+                    <option value='Paul Dukas'>Dukas</option>
+                    <option value='Maurice Duruflé'>Duruflé</option>
+                    <option value='Henri Dutilleux'>Dutilleux</option>
+                    <option value='Antonín Dvořák'>Dvořák</option>
+                    <option value='Edward Elgar'>Elgar</option>
+                    <option value='George Enescu'>Enescu</option>
+                    <option value='Manuel de Falla'>Falla</option>
+                    <option value='Gabriel Fauré'>Fauré</option>
+                    <option value='John Field'>Field</option>
+                    <option value='César Franck'>Franck</option>
+                    <option value='Girolamo Frescobaldi'>Frescobaldi</option>
+                    <option value='George Gershwin'>Gershwin</option>
+                    <option value='Carlo Gesualdo'>Gesualdo</option>
+                    <option value='Orlando Gibbons'>Gibbons</option>
+                    <option value='Alberto Ginastera'>Ginastera</option>
+                    <option value='Philip Glass'>Glass</option>
+                    <option value='Alexander Glazunov'>Glazunov</option>
+                    <option value='Reinhold Glière'>Glière</option>
+                    <option value='Mikhail Ivanovich Glinka'>Glinka</option>
+                    <option value='Christoph Willibald von Gluck'>Gluck</option>
+                    <option value='Karl Goldmark'>Goldmark</option>
+                    <option value='Antonio Carlos Gomes'>Gomes</option>
+                    <option value='Henryk Górecki'>Górecki</option>
+                    <option value='Morton Gould'>Gould</option>
+                    <option value='Charles Gounod'>Gounod</option>
+                    <option value='Percy Grainger'>Grainger</option>
+                    <option value='Enrique Granados'>Granados</option>
+                    <option value='Edvard Grieg'>Grieg</option>
+                    <option value='Sofia Gubaidulina'>Gubaidulina</option>
+                    <option value='George Frideric Handel'>Handel</option>
+                    <option value='Howard Hanson'>Hanson</option>
+                    <option value='Roy Harris'>Harris</option>
+                    <option value='Franz Joseph Haydn'>Haydn</option>
+                    <option value='Hans Werner Henze'>Henze</option>
+                    <option value='Victor Herbert'>Herbert</option>
+                    <option value='Paul Hindemith'>Hindemith</option>
+                    <option value='Vagn Holmboe'>Holmboe</option>
+                    <option value='Gustav Holst'>Holst</option>
+                    <option value='Arthur Honegger'>Honegger</option>
+                    <option value='Johann Nepomuk Hummel'>Hummel</option>
+                    <option value='Engelbert Humperdinck'>Humperdinck</option>
+                    <option value='Jacques Ibert'>Ibert</option>
+                    <option value='Charles Ives'>Ives</option>
+                    <option value='Leoš Janáček'>Janacek</option>
+                    <option value='Clément Janequin'>Janequin</option>
+                    <option value='Scott Joplin'>Joplin</option>
+                    <option value='Dmitry Kabalevsky'>Kabalevsky</option>
+                    <option value='Aram Khachaturian'>Khachaturian</option>
+                    <option value='Zoltán Kodály'>Kodály</option>
+                    <option value='Erich Wolfgang Korngold'>Korngold</option>
+                    <option value='Edouard Lalo'>Lalo</option>
+                    <option value='Orlande de Lassus'>Lassus</option>
+                    <option value='Ruggero Leoncavallo'>Leoncavallo</option>
+                    <option value='Léonin'>Léonin</option>
+                    <option value='György Ligeti'>Ligeti</option>
+                    <option value='Franz Liszt'>Liszt</option>
+                    <option value='Fernando Lopes-Graça'>Lopes-Graça</option>
+                    <option value='Jean-Baptiste Lully'>Lully</option>
+                    <option value='Witold Lutoslawski'>Lutoslawski</option>
+                    <option value='Edward MacDowell'>MacDowell</option>
+                    <option value='Guillaume de Machaut'>Machaut</option>
+                    <option value='Gustav Mahler'>Mahler</option>
+                    <option value='Marin Marais'>Marais</option>
+                    <option value='Benedetto Marcello'>Marcello</option>
+                    <option value='Alessandro Marcello'>Marcello, A.</option>
+                    <option value='Bohuslav Martinů'>Martinů</option>
+                    <option value='Pietro Mascagni'>Mascagni</option>
+                    <option value='Jules Massenet'>Massenet</option>
+                    <option value='Felix Mendelssohn'>Mendelssohn</option>
+                    <option value='Olivier Messiaen'>Messiaen</option>
+                    <option value='Francisco Mignone'>Mignone</option>
+                    <option value='Darius Milhaud'>Milhaud</option>
+                    <option value='Ernest Moeran'>Moeran</option>
+                    <option value='Claudio Monteverdi'>Monteverdi</option>
+                    <option value='Wolfgang Amadeus Mozart'>Mozart</option>
+                    <option value='Modest Mussorgsky'>Mussorgsky</option>
+                    <option value='Carl Nielsen'>Nielsen</option>
+                    <option value='Luigi Nono'>Nono</option>
+                    <option value='Jacob Obrecht'>Obrecht</option>
+                    <option value='Johannes Ockeghem'>Ockeghem</option>
+                    <option value='Jacques Offenbach'>Offenbach</option>
+                    <option value='Carl Orff'>Orff</option>
+                    <option value='Johann Pachelbel'>Pachelbel</option>
+                    <option value='Niccolò Paganini'>Paganini</option>
+                    <option value='Giovanni Pierluigi da Palestrina'>Palestrina</option>
+                    <option value='Arvo Pärt'>Pärt</option>
+                    <option value='Krzysztof Penderecki'>Penderecki</option>
+                    <option value='Giovanni Battista Pergolesi'>Pergolesi</option>
+                    <option value='Pérotin'>Pérotin</option>
+                    <option value='Astor Piazzolla'>Piazzolla</option>
+                    <option value='Francis Poulenc'>Poulenc</option>
+                    <option value='Michael Praetorius'>Praetorius</option>
+                    <option value='Sergei Prokofiev'>Prokofiev</option>
+                    <option value='Giacomo Puccini'>Puccini</option>
+                    <option value='Henry Purcell'>Purcell</option>
+                    <option value='Sergei Rachmaninoff'>Rachmaninoff</option>
+                    <option value='Jean-Philippe Rameau'>Rameau</option>
+                    <option value='Einojuhani Rautavaara'>Rautavaara</option>
+                    <option value='Maurice Ravel'>Ravel</option>
+                    <option value='Max Reger'>Reger</option>
+                    <option value='Steve Reich'>Reich</option>
+                    <option value='Ottorino Respighi'>Respighi</option>
+                    <option value='Wolfgang Rihm'>Rihm</option>
+                    <option value='Nikolai Rimsky-Korsakov'>Rimsky-Korsakov</option>
+                    <option value='Joaquín Rodrigo'>Rodrigo</option>
+                    <option value='Ned Rorem'>Rorem</option>
+                    <option value='Gioachino Rossini'>Rossini</option>
+                    <option value='Albert Roussel'>Roussel</option>
+                    <option value='Camille Saint-Saëns'>Saint-Saëns</option>
+                    <option value='Antonio Salieri'>Salieri</option>
+                    <option value='Erik Satie'>Satie</option>
+                    <option value='Domenico Scarlatti'>Scarlatti</option>
+                    <option value='Alessandro Scarlatti'>Scarlatti, A.</option>
+                    <option value='Franz Schmidt'>Schmidt</option>
+                    <option value='Alfred Schnittke'>Schnittke</option>
+                    <option value='Arnold Schoenberg'>Schoenberg</option>
+                    <option value='Franz Schubert'>Schubert</option>
+                    <option value='William Schuman'>Schuman</option>
+                    <option value='Robert Schumann'>Schumann</option>
+                    <option value='Heinrich Schütz'>Schütz</option>
+                    <option value='Alexander Scriabin'>Scriabin</option>
+                    <option value='Dmitri Shostakovich'>Shostakovich</option>
+                    <option value='Jean Sibelius'>Sibelius</option>
+                    <option value='Bedrich Smetana'>Smetana</option>
+                    <option value='Fernando Sor'>Sor</option>
+                    <option value='Louis Spohr'>Spohr</option>
+                    <option value='Carl Stamitz'>Stamitz</option>
+                    <option value='Wilhelm Stenhammar'>Stenhammar</option>
+                    <option value='Karlheinz Stockhausen'>Stockhausen</option>
+                    <option value='Richard Strauss'>Strauss</option>
+                    <option value='Johann Strauss Jr'>Strauss Jr</option>
+                    <option value='Igor Stravinsky'>Stravinsky</option>
+                    <option value='Josef Suk'>Suk</option>
+                    <option value='Jan Pieterszoon Sweelinck'>Sweelinck</option>
+                    <option value='Karol Szymanowski'>Szymanowski</option>
+                    <option value='Toru Takemitsu'>Takemitsu</option>
+                    <option value='Thomas Tallis'>Tallis</option>
+                    <option value='Giuseppe Tartini'>Tartini</option>
+                    <option value='John Taverner'>Taverner</option>
+                    <option value='Pyotr Ilyich Tchaikovsky'>Tchaikovsky</option>
+                    <option value='Georg Philipp Telemann'>Telemann</option>
+                    <option value='Michael Tippett'>Tippett</option>
+                    <option value='Edgard Varèse'>Varèse</option>
+                    <option value='Ralph Vaughan Williams'>Vaughan Williams</option>
+                    <option value='Giuseppe Verdi'>Verdi</option>
+                    <option value='Tomás Luis de Victoria'>Victoria</option>
+                    <option value='Heitor Villa-Lobos'>Villa-Lobos</option>
+                    <option value='Antonio Vivaldi'>Vivaldi</option>
+                    <option value='Richard Wagner'>Wagner</option>
+                    <option value='William Walton'>Walton</option>
+                    <option value='Carl Maria von Weber'>Weber</option>
+                    <option value='Anton Webern'>Webern</option>
+                    <option value='Kurt Weill'>Weill</option>
+                    <option value='Charles-Marie Widor'>Widor</option>
+                    <option value='Hugo Wolf'>Wolf</option>
+                    <option value='Iannis Xenakis'>Xenakis</option>
+                    <option value='Eugene Ysaÿe'>Ysaÿe</option>
+                    <option value='Alexander von Zemlinsky'>Zemlinsky</option>
+                </datalist>
+
+                <div class="input-group mb-3 d-none" id="genreContainer">
+                    <span class="input-group-text" id="genreLabel">&nbsp;&nbsp;&nbsp;&nbsp;Genre&nbsp;&nbsp;&nbsp;&thinsp;</span>
+                    <select class="form-select" aria-label="Default select example" aria-describedby="genreLabel" id="genre">
+                    </select>
+                </div>
+
+                <div class="input-group mb-3 d-none" id="workContainer">
+                    <span class="input-group-text" id="workLabel">&nbsp;&nbsp;&nbsp;&nbsp;Work&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <a style="text-decoration: none !important; :hover{ color: #f00 !important; }" class="form-control" data-bs-toggle="collapse" href="#worksCollapse" role="button" aria-expanded="false" aria-controls="worksCollapse" id="selectedWork" aria-describedby="workLabel">
+                    Select work from below:
+                    </a>
+                </div>
+
+                <div class="input-group collapse mb-3 ms-5" id="worksCollapse">
+                    <div class="list-group"  id="worksList">
+                    </div>
+                </div>
+        </div>
+        
+        <div class="container-md shadow-sm p-3 mb-5 bg-body rounded d-none" id="tableContainer">
+            <div class="progress d-flex mt-5 mb-5 d-none" id="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%" id="progressbar"></div>
+            </div>
+            <!-- <div class="d-flex mt-5 mb-5 justify-content-center d-none" id="spinner">
+                <div class="spinner-grow" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div> -->
+            
+            <div class="d-none" id="tableWrapper">
+                <table class="table table-hover" id="resultTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Album</th>
+                            <th scope="col">Year</th>
+                            <th scope="col">k</th>
+                            <th scope="col">k</th>
+                            <th scope="col">k</th>
+                            <th scope="col">k</th>
+                            <!-- <th scope="col">Link</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <!-- <td>-</td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <script src="./main.js"></script>
+        <script>
+            $(document).ready(function(){
+            $('#myTable').DataTable();
+            });
+        </script>
+        <br />
+  </body>
+</html>
