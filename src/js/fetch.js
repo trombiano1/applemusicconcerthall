@@ -451,7 +451,7 @@ function showErrorModal(status) {
     console.log(status);
     const labels = {429: "429 Too Many Requests", 502: "502 Bad Gateway"};
     const contents = {429: "Many people seem to be using this application. It should improve when you reload. Sorry for the inconvenience. <br />利用者数が多く, リクエスト数が制限に達してしまいました. 再読み込みすると改善します.", 502: "Server is down. It should improve when you reload. Sorry for the inconvenience. <br />サーバーがダウンしています. ページを再読み込みしてください."};
-    $('#errorModalLabel').html(labels[status]);
+    $('#errorModalLabel').html(status);
     $('#errorModalContent').html(contents[status]);
     let myModal = new Modal(document.getElementById('errorModal'));
     myModal.show();
