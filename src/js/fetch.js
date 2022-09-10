@@ -13,6 +13,7 @@ window.$ = $;
 
 // history
 let composerIdHistory = {};
+let idHistory = {};
 
 // query
 let queryComposerName;
@@ -67,16 +68,17 @@ $(function() {
 
 $(document.body).on('click', '.worklink' ,function(e){
     $('#worksCollapse').removeClass('show');
-
+    $('#searchButton').removeClass('d-none');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
-
     // set button name
     $('#selectedWork').html(queryPieceName);
+});
 
+$('#searchButton').on('click', () => {
     // show table container and progress
     $('#tableContainer').removeClass('d-none');
-    $('#progress').removeClass('d-none');
+    $('#progressContainer').removeClass('d-none');
     $('#tableWrapper').addClass('d-none');
 
     console.log(queryPieceName);
@@ -107,6 +109,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName.replace(/\s+$/, '');
     
     $('#progressbar').attr('style', 'width: 2%;');
+    $('#progressText').html('Looking for albums...');
 
     // disable buttons until finish
     $("#composer").attr('disabled', true);
@@ -122,6 +125,7 @@ $('#composer').on('input', () => {
     $('#genreContainer').addClass('d-none');
     $('#workContainer').addClass('d-none');
     $('#worksCollapse').removeClass('show');
+    $('#searchButton').addClass('d-none');
 
     var val = document.getElementById("composer").value;
     var opts = document.getElementById('composersdatalist').childNodes;
@@ -197,8 +201,11 @@ function getGenres(){
 }
 
 function getResults(){
+    // reset history
+    idHistory = {};
+
     // reset progress bar
-    totalAlbums = 300;
+    totalAlbums = 500;
     doneAlbums = 0;
     totalGuesses = 0;
     doneGuesses = 0;
@@ -222,6 +229,7 @@ function getResults(){
             let funcs = [];
             let trackNumbers = [];
             let remember = [];
+            let sendAlbums = [];
             // for each album
             albums.forEach(album => {
                 let guesserAPIArray = [];
@@ -258,9 +266,16 @@ function getResults(){
                     }
                 });
 
-                funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
-                trackNumbers.push(albumTrackNumbers);
-                remember.push(guesserAPIArray);
+                while(guesserAPIArray.length) {
+
+                    funcs.push(guessWorks(JSON.stringify(guesserAPIArray.splice(0,5)), queryPieceId));
+                    trackNumbers.push(albumTrackNumbers);
+                    sendAlbums.push(album);
+                }
+
+                // funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
+                // trackNumbers.push(albumTrackNumbers);
+                // remember.push(guesserAPIArray);
             });
             totalGuesses = funcs.length;
             Promise.all(funcs).then((values) => {
@@ -270,10 +285,12 @@ function getResults(){
                 let getRolesFuncs = [];
                 let validAlbums = [];
 
-                for (let i = 0; i < albums.length; i++){
+                // console.log(guesserAPIArray.length, trackNumbers.length);
+
+                for (let i = 0; i < sendAlbums.length; i++){
                     if (values[i] != -1){
-                        getRolesFuncs.push(getRoles(albums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
-                        validAlbums.push(albums[i]);
+                        getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
+                        validAlbums.push(sendAlbums[i]);
                     }
                 }
 
@@ -313,7 +330,7 @@ function getResults(){
                     $("#selectedWork").attr('style', 'text-decoration: none !important;');
 
                     // show table
-                    $('#progress').addClass('d-none');
+                    $('#progressContainer').addClass('d-none');
                     $('#tableWrapper').removeClass('d-none');
                     
                     for (let i = 0; i < validAlbums.length; i++){
@@ -381,21 +398,15 @@ function getResults(){
 
                         // if enough infomration
                         if (addList.length == 4){
-                            resultTable.row.add([
-                                `<a href='${validAlbums[i]['url']}' target="_blank">
-                                <img class='shadow-sm albumart' style='width: 100px !important;' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
-                                validAlbums[i]['releaseDate'].split('-')[0]
-                            ].concat(addList)).draw(false);
-                        } else {
-                            resultTable.row.add([
-                                `<a href='${validAlbums[i]['url']}' target="_blank">
-                                <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '100x100')}/></a>`,
-                                validAlbums[i]['releaseDate'].split('-')[0],
-                                JSON.stringify(addList),
-                                '',
-                                '',
-                                ''
-                            ]).draw(false);
+                            console.log(validAlbums[i]['id']);
+                            if (!(validAlbums[i]['id'] in idHistory)){
+                                resultTable.row.add([
+                                    `<a href='${validAlbums[i]['url']}' target="_blank">
+                                    <img class='shadow-sm albumart' style='width: 100px !important;' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                    validAlbums[i]['releaseDate'].split('-')[0]
+                                ].concat(addList)).draw(false);
+                                idHistory[validAlbums[i]['id']] = 1;
+                            }
                         }
                     }
                 });
@@ -427,9 +438,10 @@ function getRoles(rolesString){
                 });
                 doneRoles++;
                 $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
+                $('#progressText').html('Matching performers...');
                 resolve(result);
             } else if (request.readyState==4 && this.status != 200){
-                showErrorModal(this.tatus);
+                showErrorModal(parseInt(this.tatus));
             }
         }
     });
@@ -446,6 +458,7 @@ function showErrorModal(status) {
 }
 
 function guessWorks(guesserAPIString, queryPieceId){
+
     return new Promise(function(resolve){
         const url = `https://api.openopus.org/dyn/work/guess?works=${guesserAPIString}`
         let request = new XMLHttpRequest();
@@ -469,6 +482,7 @@ function guessWorks(guesserAPIString, queryPieceId){
                 }
                 doneGuesses++;
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
+                $('#progressText').html('Identifying works in albums...');
                 resolve(found);
             } else if (request.readyState==4 && this.status != 200){
                 showErrorModal(this.tatus);
@@ -568,6 +582,9 @@ function getSongCandidates(offset){
                         function(values){
                             doneAlbums += 25;
                             $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
+                            if (doneAlbums * 45 / totalAlbums > 45) {
+                                $('#progressText').html('So many albums! Looking for more...');
+                            }
                             resolve([values, cnt]);
                         }
                     )

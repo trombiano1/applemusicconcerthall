@@ -6,3 +6,4 @@ import * as bootstrap from 'bootstrap'
 import 'datatables.net-bs5'
 
 require('./fetch.js');
+
