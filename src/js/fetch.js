@@ -673,9 +673,9 @@ function getSongCandidates(offset){
                     resolve([],cnt);
                 } else {
                     // // for debug; cuts off at 100
-                    if (offset > 4){
-                        cnt = false;
-                    }
+                    // if (offset > 4){
+                    //     cnt = false;
+                    // }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
@@ -693,6 +693,18 @@ function getSongCandidates(offset){
                             $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
                             if (doneAlbums * 45 / totalAlbums > 45) {
                                 $('#progressText').html('So many albums! Looking for more...');
+                            }
+                            if (doneAlbums * 45 / totalAlbums > 80) {
+                                $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
+                            }
+                            if (doneAlbums * 45 / totalAlbums > 120) {
+                                $('#progressText').html("Some works might not work well. If so, please report.");
+                            }
+                            if (doneAlbums * 45 / totalAlbums > 160) {
+                                $('#progressText').html("I'm sorry everything is in English. 日本語版も気が向いたら作ります。");
+                            }
+                            if (doneAlbums * 45 / totalAlbums > 200) {
+                                $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider contributing / donating...?");
                             }
                             resolve([values, cnt]);
                         }
