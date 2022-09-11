@@ -33,12 +33,7 @@
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.0",
     "cors": "^2.8.5",
-    "datatable": "^2.0.2",
-    "datatables": "^1.10.18",
-    "datatables-bootstrap": "0.0.1",
-    "datatables.net": "^1.12.1",
     "datatables.net-bs5": "^1.12.1",
-    "datatables.net-dt": "^1.12.1",
     "express": "^4.18.1",
     "jquery": "^3.6.1",
     "jsdom": "^20.0.0"

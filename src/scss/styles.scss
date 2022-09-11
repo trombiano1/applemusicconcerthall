@@ -9,8 +9,37 @@ body {
     -o-background-size: cover;
 }
 
+.paginate_button:not(.disabled) a{
+    color: #800 !important;
+}
+
+.paginate_button:not(:disabled):not(.disabled).active:focus,
+.btn-primary:not(:disabled):not(.disabled):active:focus,
+.show>.btn-primary.dropdown-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, .5) !important;
+}
+
+.btn-danger {
+    background-color: #971723 !important;
+}
+
+.btn-danger:active {
+    background-color: #7a121c !important;
+}
+
+.btn:focus,.btn:active {
+    outline: none !important;
+    box-shadow: none;
+}
+
+.paginate_button:not(.previous):not(.next).active a{
+    color: #fff !important;
+    background-color: #881520 !important;
+    border-color: #881520 !important;
+}
+
 .dark-red-background {
-    background-color: #800 !important;
+    background-color: #971723 !important;
 }
 
 .searchBar {
@@ -36,6 +65,22 @@ body {
     }
 }
 
+
+.dt-center .pagination {
+    justify-content: center !important;
+}
+
+.resultTable_filter {
+    background-color: #f00 !important; 
+}
+
+.dataTables_length {
+    margin-bottom: 15px;
+}
+
+.dataTables_info {
+    margin-bottom: 15px;
+}
 // icons----------------------------------------------
 
 .icon {
@@ -44,7 +89,7 @@ body {
     min-width: 18px !important;
     display: inline-block;
     vertical-align: sub;
-    margin-right: 4px;
+    margin-right: 6px;
 }
 
 .OrchestraIcon {

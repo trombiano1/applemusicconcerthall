@@ -1,5 +1,4 @@
 "use strict";
-import dt from 'datatables.net';
 import { Modal } from 'bootstrap'
 
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
@@ -31,8 +30,17 @@ let totalRoles;
 let doneRoles;
 
 var resultTable = $('#resultTable').DataTable({
-    searching: true,
     responsive: true,
+    // dom: "<'col-sm-12 col-md-4'><'col-sm-12 col-md-4'f><'col-sm-12 col-md-4'l>",
+    // dom: '<"dt-center" l><"dt-center" p>ti<"dt-center"p>',
+    dom: '<"row"<"col-sm" l><"col-sm-4 dt-center" p><"col-sm">>ti<"dt-center"p>',
+    // dom: '<"float-left"B><"float-right"f>rt<"row"<"col-sm-4"l><"col-sm-4"i><"col-sm-4"p>>',
+    language: {
+        search: "",
+        lengthMenu: "_MENU_"
+    },
+    aLengthMenu: [[10, 25, 50, 100, -1], ["10 albums", "25 albums", "50 albums", "100 albums", "All"]],
+    iDisplayLength: 25,
     rowReorder: {
         selector: 'td:nth-child(2)'
     },
@@ -66,10 +74,43 @@ var resultTable = $('#resultTable').DataTable({
       ]
 });
 
+$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+    let searchterm = $('#searchBar').val();
+    let terms = searchterm.split(" ");
+    let columns = [];
+
+    if (searchterm == "") {
+        return true;
+    }
+
+    for (let i = 0; i < 5; i++) {
+        columns.push(data[i + 1]);
+    }
+    
+    for (let i = 0; i < terms.length; i++) {
+        let found = false;
+        let term = terms[i];
+        for (let i = 0; i < 5; i++) {
+            if ((columns[i]).toLowerCase().includes(term.toLowerCase())){
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+        } else {
+            return false;
+        }
+    }
+    return true;
+});
+
+$('#searchBar').on('keyup', function () {
+    resultTable.draw();
+});
+
+// styles
 $(function() { 
     $("#progressbar").addClass("dark-red-background");
-    $(".dataTables_length").addClass("w-100");
-    $(".dataTables_filter").addClass("w-100");
  });
 
 $(document.body).on('click', '.worklink' ,function(e){
@@ -141,7 +182,7 @@ $('#composer').on('input', () => {
         // yourCallbackHere()
         queryComposerId = COMPOSER_IDS[opts[i].value];
         queryComposerName = opts[i].value.split(/ /).pop();
-
+        $("#spinner").removeClass("d-none");
         getGenres();
         break;
       }
@@ -150,8 +191,17 @@ $('#composer').on('input', () => {
 
 $('#genre').on('change', function() {
     $('#selectedWork').html("Select work from below:");
+    $('#spinner').removeClass('d-none');
     listWorks(document.getElementById('genre').value);
     // $('#worksCollapse').collapse();
+});
+
+$('#sort').on('change', function(){
+    resultTable.order([parseInt(document.getElementById('sort').value), document.getElementById('sortUpDown').value]).draw();
+});
+
+$('#sortUpDown').on('change', function(){
+    resultTable.order([parseInt(document.getElementById('sort').value), document.getElementById('sortUpDown').value]).draw();
 });
 
 function listWorks(genre){
@@ -175,6 +225,7 @@ function listWorks(genre){
             document.getElementById('worksList').innerHTML = HTMLString;
             $('#workContainer').removeClass('d-none');
             $('#worksCollapse').addClass('show');
+            $('#spinner').addClass('d-none');
         } else if (request.readyState==4 && this.status != 200){
             showErrorModal(this.status);
         }
@@ -199,6 +250,7 @@ function getGenres(){
             });
             document.getElementById('genre').innerHTML = HTMLString;
             $('#genreContainer').removeClass('d-none');
+            $('#spinner').addClass('d-none');
         } else if (request.readyState==4 && this.status != 200){
             showErrorModal(this.status);
         }
@@ -321,6 +373,16 @@ function getResults(){
                         // resultTable.column(1).visible(true);
                     }
 
+                    // set sorting options
+                    let sortString = `<option value="Select sort" disabled selected>Select sort...</option>\
+                                      <option value="6">Year</option>`;
+                    for (let i = 0; i < 4; i++) {
+                        if (i < queryPieceRoles.length){
+                            sortString += `<option value="${i + 7}">${queryPieceRoles[i]}</option>`;
+                        }
+                    }
+                    document.getElementById('sort').innerHTML = sortString;
+
                     // set header and hide columns
                     if (window.innerWidth < 600) {
                         //mobile
@@ -340,6 +402,9 @@ function getResults(){
                                 resultTable.column(i+2).visible(false);
                             }
                         }
+                    }
+                    for (let i = 6; i < 11; i++) {
+                        resultTable.column(i).visible(false);
                     }
 
                     // reenable search
@@ -384,22 +449,27 @@ function getResults(){
                             }
                         }
                         let addList = [];
+                        let sortList = [];
+                        sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
                                 addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div>${assignedRoles[queryPieceRoles[j]][0]}</div></div>`);
+                                sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
                             } else {
                                 addList.push("");
+                                sortList.push("zzzzzzzzz");
                             }
                         }
                         for (let j = queryPieceRoles.length; j < 4; j++){
                             addList.push("");
+                            sortList.push("");
                         }
 
                         if (addList.length == 4){ // assert
                             if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
                                 if (window.innerWidth < 600) {
                                     // mobile
-                                    let addString = `<p><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                                    let addString = `<p class='text-secondary'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
                                     addList.forEach(element => {
                                         addString += "<p>";
                                         addString += element;
@@ -409,18 +479,11 @@ function getResults(){
                                         `<a href='${validAlbums[i]['url']}' target="_blank">
                                         <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
                                         addString,
-                                        "",
-                                        "",
-                                        "",
-                                        ""
-                                    ]).draw(false);
-                                } else {
-                                    // others
-                                    resultTable.row.add([
-                                        `<a href='${validAlbums[i]['url']}' target="_blank">
-                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
-                                        validAlbums[i]['releaseDate'].split('-')[0]
-                                    ].concat(addList)).draw(false);
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                    ].concat(sortList)).draw(false);
                                 }
                                 idHistory[validAlbums[i]['id']] = 1;
                             }
@@ -434,6 +497,7 @@ function getResults(){
 
 function getRoles(rolesString){
     return new Promise(function(resolve){
+        $('#progressText').html('Matching performers...');
         if (rolesString == "-1"){
             resolve("");
         }
@@ -511,7 +575,7 @@ function showErrorModal(status) {
 }
 
 function guessWorks(guessAPIArray, queryPieceId){
-
+    $('#progressText').html('Identifying works...');
     return new Promise(function(resolve){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
@@ -590,9 +654,9 @@ function getSongCandidates(offset){
                     resolve([],cnt);
                 } else {
                     // // for debug; cuts off at 100
-                    if (offset > 4){
-                        cnt = false;
-                    }
+                    // if (offset > 4){
+                    //     cnt = false;
+                    // }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
