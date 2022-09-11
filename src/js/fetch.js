@@ -164,7 +164,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName.replace(/\s+$/, '');
 
     // set button name
-    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId} Work ID: ${queryPieceId}</small>`);
+    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId} Work ID: ${queryPieceId}</small> will be used for identification.`);
     $('#searchQueryCustom').val(queryComposerName + " " + queryPieceName);
     $('#customQuery').removeClass('d-none');
     $('#selectedWork').html(originalQueryPieceName);
@@ -197,6 +197,7 @@ $('#composer').on('input', () => {
     $('#workContainer').addClass('d-none');
     $('#worksCollapse').removeClass('show');
     $('#searchButton').addClass('d-none');
+    $('#composerDescription').removeClass('d-none');
 
     var val = document.getElementById("composer").value;
     var opts = document.getElementById('composersdatalist').childNodes;
@@ -207,6 +208,7 @@ $('#composer').on('input', () => {
         queryComposerId = COMPOSER_IDS[opts[i].value];
         queryComposerName = opts[i].value.split(/ /).pop();
         $("#spinner").removeClass("d-none");
+        $('#composerDescription').addClass('d-none');
         getGenres();
         break;
       }
