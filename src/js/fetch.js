@@ -113,6 +113,10 @@ $('#searchBar').on('search', function () {
     resultTable.draw();
 });
 
+$('#searchQueryCustom').on('click', function () {
+    $('#searchQueryCustom').attr('style', 'color: #000');
+});
+
 // styles
 $(function() { 
     $("#progressbar").addClass("dark-red-background");
@@ -179,7 +183,7 @@ $('#searchButton').on('click', () => {
     $("#genre").attr('disabled', true);
     $("#selectedWork").attr('data-bs-toggle', '');
     $("#selectedWork").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
-    $("#searchQueryCustomLabel").attr('disabled', true);
+    $("#searchQueryCustom").attr('disabled', true);
 
     query = $('#searchQueryCustom').val();
 
