@@ -118,11 +118,10 @@ $(function() {
  });
 
 $(document.body).on('click', '.filter' ,function(e){
-    // console.log($(this).attr('value'));
-    $('#searchBar').val($(this).attr('value'));
     $([document.documentElement, document.body]).animate({
         scrollTop: $("#tableContainer").offset().top
     }, 500);
+    $('#searchBar').val($(this).attr('value'));
     resultTable.draw();
 });
 
@@ -490,7 +489,7 @@ function getResults(){
                                     });
                                     resultTable.row.add([
                                         `<a href='${validAlbums[i]['url']}' target="_blank">
-                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                        <div class='arts'><img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
                                         addString,
                                         '',
                                         '',
@@ -501,7 +500,7 @@ function getResults(){
                                     // others
                                     resultTable.row.add([
                                         `<a href='${validAlbums[i]['url']}' target="_blank">
-                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                        <div class='arts'><img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
                                         validAlbums[i]['releaseDate'].split('-')[0]
                                     ].concat(addList).concat(sortList)).draw(false);
                                 }

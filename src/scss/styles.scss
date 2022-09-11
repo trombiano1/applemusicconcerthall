@@ -10,14 +10,10 @@ body {
     background-color: #200;
 }
 
+// pagination, button color -------------------------
+
 .paginate_button:not(.disabled) a{
     color: #800 !important;
-}
-
-.paginate_button:not(:disabled):not(.disabled).active:focus,
-.btn-primary:not(:disabled):not(.disabled):active:focus,
-.show>.btn-primary.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, .5) !important;
 }
 
 .btn-danger {
@@ -59,25 +55,72 @@ body {
     background-color: #000;
 }
 
+
+// album art size, responsive, animation------------------
+.arts{
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 60px;
+    margin: auto;
+}
+.cd {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 60px;
+}
 .albumart {
     width: 60px;
+    height: 60px;
+    transition: transform 0.2s;
+    transform-origin: left bottom;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    z-index: 50;
+}
+.albumart:hover {
+    transform: skewY(-10deg) scaleX(0.97);
 }
 @include media-breakpoint-up(sm) {
     .albumart {
-        width: 60px
+        width: 60px;
+        height: 60px;
+    }
+    .arts {
+        width: 60px;
+    }
+    .cd {
+        width: 60px;
     }
 }
 @include media-breakpoint-up(md) {
     .albumart {
-        width: 75px
+        width: 75px;
+        height: 75px;
+    }
+    .arts {
+        width: 75px;
+    }
+    .cd {
+        width: 75px;
     }
 }
 @include media-breakpoint-up(lg) {
     .albumart {
-        width: 100px
+        width: 100px;
+        height: 100px;
+    }
+    .arts {
+        width: 100px;
+    }
+    .cd {
+        width: 100px;
     }
 }
 
+// pagination color, button color to red -------------
 
 .dt-center .pagination {
     justify-content: center !important;
@@ -238,11 +281,3 @@ body {
     display: flex;
     align-items: center;
 }
-
-// .batonicon {
-//     background: url('images/baton.png');
-//     height: 20px;
-//     width: 20px;
-//     display: block;
-//     /* Other styles here */
-// }
