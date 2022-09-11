@@ -42,6 +42,18 @@ body {
     background-color: #971723 !important;
 }
 
+.filter {
+    background: url('images/magnify.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 13px !important;
+    width: 13px !important;
+    min-width: 12px !important;
+    display: inline-block;
+    vertical-align: sub;
+    margin-left: 3px;
+}
+
 .searchBar {
     background-color: #000;
 }

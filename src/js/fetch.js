@@ -106,6 +106,16 @@ $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
 
 $('#searchBar').on('keyup', function () {
     resultTable.draw();
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $("#tableContainer").offset().top
+    }, 2000);
+});
+
+$('#searchBar').on('search', function () {
+    resultTable.draw();
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $("#tableContainer").offset().top
+    }, 2000);
 });
 
 // styles
@@ -459,7 +469,7 @@ function getResults(){
                         sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
-                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div><a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'>${assignedRoles[queryPieceRoles[j]][0]}</a></div></div>`);
+                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div>${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`);
                                 sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
                             } else {
                                 addList.push("");
