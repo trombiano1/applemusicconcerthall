@@ -131,6 +131,7 @@ $(document.body).on('click', '.filter' ,function(e){
 });
 
 $(document.body).on('click', '.worklink' ,function(e){
+    $("#selectedWork").attr('style', 'color: #292b2c; text-decoration: none !important;');
     $('#worksCollapse').removeClass('show');
     $('#searchButton').removeClass('d-none');
     queryPieceId = parseInt($(this).attr('value'));
@@ -208,6 +209,9 @@ $('#composer').on('input', () => {
         queryComposerId = COMPOSER_IDS[opts[i].value];
         queryComposerName = opts[i].value.split(/ /).pop();
         $("#spinner").removeClass("d-none");
+        $('#searchQueryCustom').attr('style', 'color: #999');
+        $('#genre').attr('style', 'color: #999');
+        $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
         $('#composerDescription').addClass('d-none');
         getGenres();
         break;
@@ -216,6 +220,7 @@ $('#composer').on('input', () => {
 });
 
 $('#genre').on('change', function() {
+    $('#genre').attr('style', 'color: #292b2c');
     $('#selectedWork').html("Select work from below:");
     $('#spinner').removeClass('d-none');
     listWorks(document.getElementById('genre').value);
