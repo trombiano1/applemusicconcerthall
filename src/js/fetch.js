@@ -31,7 +31,7 @@ let totalRoles;
 let doneRoles;
 
 var resultTable = $('#resultTable').DataTable({
-    searching: false,
+    searching: true,
     columnDefs: [
         {
             targets: 0,
@@ -64,6 +64,8 @@ var resultTable = $('#resultTable').DataTable({
 
 $(function() { 
     $("#progressbar").addClass("dark-red-background");
+    $(".dataTables_length").addClass("w-100");
+    $(".dataTables_filter").addClass("w-100");
  });
 
 $(document.body).on('click', '.worklink' ,function(e){
@@ -149,11 +151,10 @@ $('#genre').on('change', function() {
 });
 
 function listWorks(genre){
-
     const url = `https://api.openopus.org/work/list/composer/${queryComposerId}/${genre}.json`
     let request = new XMLHttpRequest();
     // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-    request.open("POST", url, true);
+    request.open("GET", url, true);
     request.send();
 
     request.onreadystatechange = function () {
@@ -205,7 +206,7 @@ function getResults(){
     idHistory = {};
 
     // reset progress bar
-    totalAlbums = 500;
+    totalAlbums = 300;
     doneAlbums = 0;
     totalGuesses = 0;
     doneGuesses = 0;
@@ -268,7 +269,7 @@ function getResults(){
 
                 while(guesserAPIArray.length) {
 
-                    funcs.push(guessWorks(JSON.stringify(guesserAPIArray.splice(0,5)), queryPieceId));
+                    funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
                     trackNumbers.push(albumTrackNumbers);
                     sendAlbums.push(album);
                 }
@@ -284,8 +285,6 @@ function getResults(){
 
                 let getRolesFuncs = [];
                 let validAlbums = [];
-
-                // console.log(guesserAPIArray.length, trackNumbers.length);
 
                 for (let i = 0; i < sendAlbums.length; i++){
                     if (values[i] != -1){
@@ -398,7 +397,7 @@ function getResults(){
 
                         // if enough infomration
                         if (addList.length == 4){
-                            console.log(validAlbums[i]['id']);
+                            // console.log(validAlbums[i]['id']);
                             if (!(validAlbums[i]['id'] in idHistory)){
                                 resultTable.row.add([
                                     `<a href='${validAlbums[i]['url']}' target="_blank">
@@ -420,15 +419,24 @@ function getRoles(rolesString){
         if (rolesString == "-1"){
             resolve("");
         }
+
         let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
-        const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
-        let request = new XMLHttpRequest();
+
         let result = {};
-        request.open("POST", url, true);
-        request.send();
-        request.onreadystatechange = function () {
-            if (request.readyState==4 && this.status == 200) {
-                const data = JSON.parse(this.responseText);
+        $.ajax({
+            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`,
+            type: "GET",
+            // dataType: "json",
+            // contentType: "application/json",
+            // data: JSON.stringify({
+            //     works: guessAPIArray
+            // }),
+            // set the request header authorization to the bearer token that is generated
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            success: function(retrievedResult) {
+                const data = retrievedResult;
                 data['performers']['readable'].forEach(element => {
                     if (element['role'] in result){
                         result[element['role']].push(element['name']);
@@ -440,10 +448,36 @@ function getRoles(rolesString){
                 $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
                 $('#progressText').html('Matching performers...');
                 resolve(result);
-            } else if (request.readyState==4 && this.status != 200){
-                showErrorModal(parseInt(this.tatus));
-            }
-        }
+            },
+            error: function(error) {
+              console.log(`Error ${error}`)
+            },
+        });
+
+        // let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
+        // const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
+        // let request = new XMLHttpRequest();
+        // let result = {};
+        // request.open("POST", url, true);
+        // request.send();
+        // request.onreadystatechange = function () {
+        //     if (request.readyState==4 && this.status == 200) {
+        //         const data = JSON.parse(this.responseText);
+        //         data['performers']['readable'].forEach(element => {
+        //             if (element['role'] in result){
+        //                 result[element['role']].push(element['name']);
+        //             } else {
+        //                 result[element['role']] = [element['name']];
+        //             }
+        //         });
+        //         doneRoles++;
+        //         $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
+        //         $('#progressText').html('Matching performers...');
+        //         resolve(result);
+        //     } else if (request.readyState==4 && this.status != 200){
+        //         showErrorModal(parseInt(this.tatus));
+        //     }
+        // }
     });
 }
 
@@ -451,26 +485,24 @@ function showErrorModal(status) {
     console.log(status);
     const labels = {429: "429 Too Many Requests", 502: "502 Bad Gateway"};
     const contents = {429: "Many people seem to be using this application. It should improve when you reload. Sorry for the inconvenience. <br />利用者数が多く, リクエスト数が制限に達してしまいました. 再読み込みすると改善します.", 502: "Server is down. It should improve when you reload. Sorry for the inconvenience. <br />サーバーがダウンしています. ページを再読み込みしてください."};
-    $('#errorModalLabel').html(status);
+    $('#errorModalLabel').html(toString(status));
     $('#errorModalContent').html(contents[status]);
     let myModal = new Modal(document.getElementById('errorModal'));
     myModal.show();
 }
 
-function guessWorks(guesserAPIString, queryPieceId){
+function guessWorks(guessAPIArray, queryPieceId){
 
     return new Promise(function(resolve){
-        const url = `https://api.openopus.org/dyn/work/guess?works=${guesserAPIString}`
-        let request = new XMLHttpRequest();
-        // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-        request.open("POST", url, true);
-        request.send();
-
-        let found = -1;
-
-        request.onreadystatechange = function () {
-            if (request.readyState==4 && this.status == 200) {
-                const data = JSON.parse(this.responseText);
+        $.ajax({
+            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
+            type: "GET",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            success: function(result) {
+                let found = -1;
+                const data = result;
                 if (data['works'] !== null){
                     for (let i = 0; i < data['works'].length; i++){
                         const element = data['works'][i];
@@ -484,37 +516,11 @@ function guessWorks(guesserAPIString, queryPieceId){
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 $('#progressText').html('Identifying works in albums...');
                 resolve(found);
-            } else if (request.readyState==4 && this.status != 200){
-                showErrorModal(this.tatus);
-            }
-        }
-    });
-}
-
-function getComposerId(string){
-    return new Promise(function(resolve){
-        // if already exists, return history
-        if (typeof composerIdHistory[string] !== "undefined"){
-            resolve(composerIdHistory[string]);
-        }
-
-        // ask API
-        const url = `https://api.openopus.org/composer/list/search/${string}.json`
-        let request = new XMLHttpRequest();
-        request.open("GET", url, true);
-        request.send();
-
-        request.onreadystatechange = function () {
-            if (request.readyState == 4 && this.status == 200) {
-                const data = JSON.parse(this.responseText);
-                const composerId = data['composers'][0]['id'];
-                composerIdHistory[string] = composerId;
-                // Return first hit
-                resolve(data['composers'][0]['id'])
-            } else if (request.readyState==4 && this.status != 200){
-                showErrorModal(this.tatus);
-            }
-        };
+            },
+            error: function(error) {
+              console.log(`Error ${error}`)
+            },
+          });
     });
 }
 
