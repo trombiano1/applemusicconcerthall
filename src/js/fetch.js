@@ -20,6 +20,7 @@ let queryComposerId;
 let queryPieceName;
 let queryPieceId;
 let queryPieceRoles = [];
+let query = "";
 
 // progress bar
 let totalAlbums;
@@ -130,18 +131,8 @@ $(document.body).on('click', '.worklink' ,function(e){
     $('#searchButton').removeClass('d-none');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
-    // set button name
-    $('#selectedWork').html(queryPieceName);
-});
 
-$('#searchButton').on('click', () => {
-    // show table container and progress
-    $('#tableContainer').removeClass('d-none');
-    $('#progressContainer').removeClass('d-none');
-    $('#tableWrapper').addClass('d-none');
-
-    console.log(queryPieceName);
-    // get rid of 'in E major'
+        // get rid of 'in E major'
     if (queryPieceName.includes(' in ') && queryPieceName.includes(' major')){
         queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' major').pop();
     }
@@ -166,6 +157,19 @@ $('#searchButton').on('click', () => {
 
     //get rid of end space
     queryPieceName.replace(/\s+$/, '');
+
+    // set button name
+    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId} Work ID: ${queryPieceId}</small>`);
+    $('#searchQueryCustom').val(queryComposerName + " " + queryPieceName);
+    $('#customQuery').removeClass('d-none');
+    $('#selectedWork').html(queryPieceName);
+});
+
+$('#searchButton').on('click', () => {
+    // show table container and progress
+    $('#tableContainer').removeClass('d-none');
+    $('#progressContainer').removeClass('d-none');
+    $('#tableWrapper').addClass('d-none');
     
     $('#progressbar').attr('style', 'width: 2%;');
     $('#progressText').html('Looking for all albums...');
@@ -175,6 +179,9 @@ $('#searchButton').on('click', () => {
     $("#genre").attr('disabled', true);
     $("#selectedWork").attr('data-bs-toggle', '');
     $("#selectedWork").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
+    $("#searchQueryCustomLabel").attr('disabled', true);
+
+    query = $('#searchQueryCustom').val();
 
     getResults();
 });
@@ -653,7 +660,8 @@ function getSongCandidates(offset){
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=albums&term=Tchaikovsky+Symphony+1'
         // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
         // const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=Tchaikovsky+symphony+5&types=albums`
-        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
+        // const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
+        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums`
 
         let request = new XMLHttpRequest();
         request.open("GET", url, true);

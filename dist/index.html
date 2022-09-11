@@ -281,6 +281,15 @@
                     </div>
                 </div>
                 
+                <div class="d-none" id="customQuery">
+                    <p class="text-secondary ms-3" id="ids"></p>
+                    <div class="input-group mt-3 mb-3">
+                        <span class="input-group-text" id="searchQueryCustomLabel">Search Term</span>
+                        <input class="form-control" type="search" aria-label="" aria-describedby="searchQueryCustomLabel" id="searchQueryCustom">
+                    </div>
+                    <p class="text-secondary ms-3" id="ids"><small>This search term will be used for searching Apple Music database.<br /> If auto-suggested query is wrong, please correct before searching.</small></p>
+                </div>
+                
                 <button type="button" class="btn btn-danger d-none" id="searchButton">Search</button>
         </div>
         
@@ -302,7 +311,6 @@
                 <div class="input-group mt-3 mb-3">
                     <span class="input-group-text" id="searchBarLabel">Filter</span>
                     <input class="form-control" type="search" placeholder="" aria-label="" aria-describedby="searchBarLabel" id="searchBar">
-                    
                 </div>
                 <!-- sort -->
                 <div class="input-group mb-3" id="genreContainer">
