@@ -172,7 +172,7 @@ function listWorks(genre){
             $('#workContainer').removeClass('d-none');
             $('#worksCollapse').addClass('show');
         } else if (request.readyState==4 && this.status != 200){
-            showErrorModal(this.tatus);
+            showErrorModal(this.status);
         }
     }
 }
@@ -196,7 +196,7 @@ function getGenres(){
             document.getElementById('genre').innerHTML = HTMLString;
             $('#genreContainer').removeClass('d-none');
         } else if (request.readyState==4 && this.status != 200){
-            showErrorModal(this.tatus);
+            showErrorModal(this.status);
         }
     }
 }
@@ -450,7 +450,8 @@ function getRoles(rolesString){
                 resolve(result);
             },
             error: function(error) {
-              console.log(`Error ${error}`)
+                //   console.log(`Error ${error}`)
+                showErrorModal(statusCode);
             },
         });
 
@@ -518,7 +519,8 @@ function guessWorks(guessAPIArray, queryPieceId){
                 resolve(found);
             },
             error: function(error) {
-              console.log(`Error ${error}`)
+              console.log(`Error ${error}`);
+              showErrorModal(statusCode);
             },
           });
     });
@@ -631,7 +633,7 @@ function getSongsInAlbum(album){
                 album['songs'] = songsInAlbum;
                 resolve(album);
             } else if (request.readyState==4 && this.status != 200){
-                showErrorModal(this.tatus);
+                showErrorModal(this.status);
             }
         }
     });
