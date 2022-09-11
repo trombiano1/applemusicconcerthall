@@ -113,6 +113,12 @@ $(function() {
     $("#progressbar").addClass("dark-red-background");
  });
 
+$(document.body).on('click', '.filter' ,function(e){
+    // console.log($(this).attr('value'));
+    $('#searchBar').val($(this).attr('value'));
+    resultTable.draw();
+});
+
 $(document.body).on('click', '.worklink' ,function(e){
     $('#worksCollapse').removeClass('show');
     $('#searchButton').removeClass('d-none');
@@ -378,8 +384,8 @@ function getResults(){
                                       <option value="6">Year</option>`;
                     for (let i = 0; i < 4; i++) {
                         if (i < queryPieceRoles.length){
-                            sortString += `<option value="${i + 7}">${queryPieceRoles[i]}</option>`;
-                        }
+                                sortString += `<option value="${i + 7}">${queryPieceRoles[i]}</option>`;
+                                        }
                     }
                     document.getElementById('sort').innerHTML = sortString;
 
@@ -453,7 +459,7 @@ function getResults(){
                         sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
-                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div>${assignedRoles[queryPieceRoles[j]][0]}</div></div>`);
+                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div><a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'>${assignedRoles[queryPieceRoles[j]][0]}</a></div></div>`);
                                 sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
                             } else {
                                 addList.push("");
@@ -484,6 +490,13 @@ function getResults(){
                                         '',
                                         '',
                                     ].concat(sortList)).draw(false);
+                                } else {
+                                    // others
+                                    resultTable.row.add([
+                                        `<a href='${validAlbums[i]['url']}' target="_blank">
+                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                        validAlbums[i]['releaseDate'].split('-')[0]
+                                    ].concat(addList).concat(sortList)).draw(false);
                                 }
                                 idHistory[validAlbums[i]['id']] = 1;
                             }
@@ -654,9 +667,9 @@ function getSongCandidates(offset){
                     resolve([],cnt);
                 } else {
                     // // for debug; cuts off at 100
-                    // if (offset > 4){
-                    //     cnt = false;
-                    // }
+                    if (offset > 4){
+                        cnt = false;
+                    }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
