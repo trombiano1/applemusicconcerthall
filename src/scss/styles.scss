@@ -17,9 +17,31 @@ body {
     background-color: #000;
 }
 
+.albumart {
+    width: 60px;
+}
+@include media-breakpoint-up(sm) {
+    .albumart {
+        width: 60px
+    }
+    .icon {
+        display: none;
+    }
+}
+@include media-breakpoint-up(md) {
+    .albumart {
+        width: 75px
+    }
+}
+@include media-breakpoint-up(lg) {
+    .albumart {
+        width: 100px
+    }
+}
+
 // icons----------------------------------------------
 
-.icon{
+.icon {
     height: 20px !important;
     width: 20px !important;
     min-width: 18px !important;

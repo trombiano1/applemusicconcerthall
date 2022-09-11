@@ -111,7 +111,7 @@ $('#searchButton').on('click', () => {
     queryPieceName.replace(/\s+$/, '');
     
     $('#progressbar').attr('style', 'width: 2%;');
-    $('#progressText').html('Looking for albums...');
+    $('#progressText').html('Looking for all albums...');
 
     // disable buttons until finish
     $("#composer").attr('disabled', true);
@@ -206,7 +206,7 @@ function getResults(){
     idHistory = {};
 
     // reset progress bar
-    totalAlbums = 300;
+    totalAlbums = 200;
     doneAlbums = 0;
     totalGuesses = 0;
     doneGuesses = 0;
@@ -310,6 +310,13 @@ function getResults(){
                         }
                     }
 
+                    // show or hide Year
+                    if (window.innerWidth < 600) {
+                        resultTable.column(1).visible(false);
+                    } else {
+                        resultTable.column(1).visible(true);
+                    }
+
                     // set header and hide columns
                     for (let i = 0; i < 4; i++) {
                         if (i < queryPieceRoles.length){
@@ -401,7 +408,7 @@ function getResults(){
                             if (!(validAlbums[i]['id'] in idHistory)){
                                 resultTable.row.add([
                                     `<a href='${validAlbums[i]['url']}' target="_blank">
-                                    <img class='shadow-sm albumart' style='width: 100px !important;' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                    <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
                                     validAlbums[i]['releaseDate'].split('-')[0]
                                 ].concat(addList)).draw(false);
                                 idHistory[validAlbums[i]['id']] = 1;
@@ -515,7 +522,7 @@ function guessWorks(guessAPIArray, queryPieceId){
                 }
                 doneGuesses++;
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
-                $('#progressText').html('Identifying works in albums...');
+                $('#progressText').html('Identifying works...');
                 resolve(found);
             },
             error: function(error) {
