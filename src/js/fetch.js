@@ -436,6 +436,7 @@ function getResults(){
                     $("#genre").attr('disabled', false);
                     $("#selectedWork").attr('data-bs-toggle', 'collapse');
                     $("#selectedWork").attr('style', 'text-decoration: none !important;');
+                    $("#searchQueryCustom").attr('disabled', false);
 
                     // show table
                     $('#progressContainer').addClass('d-none');
