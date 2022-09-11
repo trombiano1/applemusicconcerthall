@@ -106,16 +106,10 @@ $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
 
 $('#searchBar').on('keyup', function () {
     resultTable.draw();
-    $([document.documentElement, document.body]).animate({
-        scrollTop: $("#tableContainer").offset().top
-    }, 2000);
 });
 
 $('#searchBar').on('search', function () {
     resultTable.draw();
-    $([document.documentElement, document.body]).animate({
-        scrollTop: $("#tableContainer").offset().top
-    }, 2000);
 });
 
 // styles
@@ -126,6 +120,9 @@ $(function() {
 $(document.body).on('click', '.filter' ,function(e){
     // console.log($(this).attr('value'));
     $('#searchBar').val($(this).attr('value'));
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $("#tableContainer").offset().top
+    }, 500);
     resultTable.draw();
 });
 
