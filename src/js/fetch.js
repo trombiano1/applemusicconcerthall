@@ -32,6 +32,10 @@ let doneRoles;
 
 var resultTable = $('#resultTable').DataTable({
     searching: true,
+    responsive: true,
+    rowReorder: {
+        selector: 'td:nth-child(2)'
+    },
     columnDefs: [
         {
             targets: 0,
@@ -41,7 +45,7 @@ var resultTable = $('#resultTable').DataTable({
         {
             targets: 1,
             width: '50px',
-            className: 'text-center align-middle',
+            className: 'align-middle',
         },
         {
             targets: 2,
@@ -312,21 +316,31 @@ function getResults(){
 
                     // show or hide Year
                     if (window.innerWidth < 600) {
-                        resultTable.column(1).visible(false);
+                        // resultTable.column(1).visible(false);
                     } else {
-                        resultTable.column(1).visible(true);
+                        // resultTable.column(1).visible(true);
                     }
 
                     // set header and hide columns
-                    for (let i = 0; i < 4; i++) {
-                        if (i < queryPieceRoles.length){
-                            $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
-                            resultTable.column(i+2).visible(true);
-                        } else {
-                            resultTable.column(i+2).visible(false);
+                    if (window.innerWidth < 600) {
+                        //mobile
+                        $(resultTable.column(1).header()).text("Performers");
+                        resultTable.column(2).visible(false);
+                        resultTable.column(3).visible(false);
+                        resultTable.column(4).visible(false);
+                        resultTable.column(5).visible(false);
+                    } else {
+                        // others
+                        $(resultTable.column(1).header()).text("Year");
+                        for (let i = 0; i < 4; i++) {
+                            if (i < queryPieceRoles.length){
+                                $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
+                                resultTable.column(i+2).visible(true);
+                            } else {
+                                resultTable.column(i+2).visible(false);
+                            }
                         }
                     }
-                    $("#resultTable").width("100%");
 
                     // reenable search
                     // disable buttons until finish
@@ -369,17 +383,6 @@ function getResults(){
                                 }
                             }
                         }
-
-                        // // add to addList
-                        // let addList = [];
-                        // for (let j = 0; j < queryPieceRoles.length; j++){
-                        //     if (queryPieceRoles[j] in assignedRoles) {
-                        //         addList.push(assignedRoles[queryPieceRoles[j]]);
-                        //     }
-                        // }
-                        // for (let j = queryPieceRoles.length; j < 4; j++){
-                        //     addList.push('a');
-                        // }
                         let addList = [];
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
@@ -392,25 +395,33 @@ function getResults(){
                             addList.push("");
                         }
 
-                        // let addList = [];
-                        // for (let j = 0; j < queryPieceRoles.length; j++) {
-                        //     if (queryPieceRoles[j] in retrievedRoles[i]){
-                        //         addList.push(retrievedRoles[i][queryPieceRoles[j]]);
-                        //     }
-                        // }
-                        // for (let j = queryPieceRoles.length; j < 4; j++){
-                        //     addList.push('');
-                        // }
-
-                        // if enough infomration
-                        if (addList.length == 4){
-                            // console.log(validAlbums[i]['id']);
-                            if (!(validAlbums[i]['id'] in idHistory)){
-                                resultTable.row.add([
-                                    `<a href='${validAlbums[i]['url']}' target="_blank">
-                                    <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
-                                    validAlbums[i]['releaseDate'].split('-')[0]
-                                ].concat(addList)).draw(false);
+                        if (addList.length == 4){ // assert
+                            if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
+                                if (window.innerWidth < 600) {
+                                    // mobile
+                                    let addString = `<p><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                                    addList.forEach(element => {
+                                        addString += "<p>";
+                                        addString += element;
+                                        addString += "</p>"
+                                    });
+                                    resultTable.row.add([
+                                        `<a href='${validAlbums[i]['url']}' target="_blank">
+                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                        addString,
+                                        "",
+                                        "",
+                                        "",
+                                        ""
+                                    ]).draw(false);
+                                } else {
+                                    // others
+                                    resultTable.row.add([
+                                        `<a href='${validAlbums[i]['url']}' target="_blank">
+                                        <img class='shadow-sm albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/></a>`,
+                                        validAlbums[i]['releaseDate'].split('-')[0]
+                                    ].concat(addList)).draw(false);
+                                }
                                 idHistory[validAlbums[i]['id']] = 1;
                             }
                         }
@@ -579,9 +590,9 @@ function getSongCandidates(offset){
                     resolve([],cnt);
                 } else {
                     // // for debug; cuts off at 100
-                    // if (offset > 4){
-                    //     cnt = false;
-                    // }
+                    if (offset > 4){
+                        cnt = false;
+                    }
 
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};

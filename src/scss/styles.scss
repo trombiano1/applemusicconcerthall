@@ -24,9 +24,6 @@ body {
     .albumart {
         width: 60px
     }
-    .icon {
-        display: none;
-    }
 }
 @include media-breakpoint-up(md) {
     .albumart {
