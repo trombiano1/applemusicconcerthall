@@ -61,18 +61,18 @@ body {
     position: relative;
     top: 0px;
     left: 0px;
-    width: 60px;
+    width: 70px;
     margin: auto;
 }
 .cd {
     position: absolute;
     top: 0px;
     left: 0px;
-    width: 60px;
+    width: 70px;
 }
 .albumart {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     transition: transform 0.2s;
     transform-origin: left bottom;
     position: relative;
@@ -85,14 +85,14 @@ body {
 }
 @include media-breakpoint-up(sm) {
     .albumart {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 70px;
     }
     .arts {
-        width: 60px;
+        width: 70px;
     }
     .cd {
-        width: 60px;
+        width: 70px;
     }
 }
 @include media-breakpoint-up(md) {
