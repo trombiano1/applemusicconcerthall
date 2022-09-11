@@ -135,6 +135,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     $('#searchButton').removeClass('d-none');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
+    let originalQueryPieceName = queryPieceName;
 
         // get rid of 'in E major'
     if (queryPieceName.includes(' in ') && queryPieceName.includes(' major')){
@@ -166,7 +167,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId} Work ID: ${queryPieceId}</small>`);
     $('#searchQueryCustom').val(queryComposerName + " " + queryPieceName);
     $('#customQuery').removeClass('d-none');
-    $('#selectedWork').html(queryPieceName);
+    $('#selectedWork').html(originalQueryPieceName);
 });
 
 $('#searchButton').on('click', () => {
