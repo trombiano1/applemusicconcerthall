@@ -10,6 +10,16 @@ body {
     background-color: #200;
 }
 
+.footerLink {
+    color: #777 !important;
+    text-decoration: none !important;
+}
+
+.footerLink:hover {
+    color: #ccc !important;
+    text-decoration: none !important;
+}
+
 // pagination, button color -------------------------
 
 .paginate_button:not(.disabled) a{
