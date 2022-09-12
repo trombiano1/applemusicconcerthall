@@ -1,8 +1,10 @@
 Currently up at [http://applemusicconcerthall.herokuapp.com/](http://applemusicconcerthall.herokuapp.com/).
 
-#### To-do
-- unspagettify code
+#### to-do
+- unspagettify
 - optimize performance
 - add browser support
 - cache
+- better search term generation
+- better work identification algorithm
 - free Heroku Dynos will die on November 28, 2022
