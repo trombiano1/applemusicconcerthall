@@ -470,6 +470,7 @@ function getResults(){
                     // show table
                     $('#progressContainer').addClass('d-none');
                     $('#tableWrapper').removeClass('d-none');
+                    $('#searchBar').val('');
 
                     // scroll
                     $([document.documentElement, document.body]).animate({
@@ -478,9 +479,9 @@ function getResults(){
                     
                     for (let i = 0; i < validAlbums.length; i++){
                         let assignedRoles = {};
-                        let invalid;
                         let validCount = 0;
-                        let invalidCount = 0;
+                        let invalidList = [];
+                        let invalidClear = true;
 
                         // if retrieved role is in piece roles
                         for (let j = 0; j < queryPieceRoles.length; j++) {
@@ -492,29 +493,71 @@ function getResults(){
                         
                         // if weird role is retrieved
                         for (const [key, value] of Object.entries(retrievedRoles[i])) {
-                            if (!queryPieceRoles.includes(key)) {
-                                invalid = value;
-                                invalidCount++;
+                            if (key == "") {
+                                invalidList = invalidList.concat(value);
+                                invalidClear = false;
+                            } else if (!queryPieceRoles.includes(key)) {
+                                invalidList = invalidList.concat(value);
+                                invalidClear = false;
                             }
                         }
+
                         // if one is missing and one is invalid, assume that is the one
-                        if (validCount = queryPieceRoles.length - 1 && invalidCount == 1 && invalid !== undefined){
+                        if (validCount == queryPieceRoles.length - 1 && invalidList.length == 1 && invalidList[0] !== undefined){
                             for (let j = 0; j < queryPieceRoles.length; j++) {
                                 if (!(queryPieceRoles[j] in assignedRoles)){
-                                    assignedRoles[queryPieceRoles[j]] = invalid;
+                                    assignedRoles[queryPieceRoles[j]] = invalidList;
+                                    invalidClear = true;
                                     break;
                                 }
                             }
                         }
+
                         let addList = [];
                         let sortList = [];
                         sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
-                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`);
+                                let addListStr = `<div class='ic mb-2'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`
+                                if (!invalidClear) {
+                                    if (window.innerWidth < 600) {
+                                        let othersStr = "";
+                                        for (let i = 0; i < invalidList.length; i++) {
+                                            othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
+                                        }
+                                        addListStr += othersStr;
+                                        invalidClear = true;
+                                    } else {
+                                        let othersStr = '<p class="mt-3 fw-bold">Others</p>';
+                                        for (let i = 0; i < invalidList.length; i++) {
+                                            othersStr += `<p class='ms-1 mb-2'>&nbsp;${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
+                                        }
+                                        addListStr += othersStr;
+                                        invalidClear = true;
+                                    }
+                                }
+                                addList.push(addListStr);
                                 sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
                             } else {
-                                addList.push("");
+                                let addListStr = "";
+                                if (!invalidClear) {
+                                    if (window.innerWidth < 600) {
+                                        let othersStr = "";
+                                        for (let i = 0; i < invalidList.length; i++) {
+                                            othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
+                                        }
+                                        addListStr += othersStr;
+                                        invalidClear = true;
+                                    } else {
+                                        let othersStr = "<p class='mt-3 fw-bold'>Others</p>";
+                                        for (let i = 0; i < invalidList.length; i++) {
+                                            othersStr += `<p class='ms-1 mb-2'>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
+                                        }
+                                        addListStr += othersStr;
+                                        invalidClear = true;
+                                    }
+                                }
+                                addList.push(addListStr);
                                 sortList.push("zzzzzzzzz");
                             }
                         }
@@ -527,12 +570,16 @@ function getResults(){
                             if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
                                 if (window.innerWidth < 600) {
                                     // mobile
-                                    let addString = `<p class='text-secondary'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                                    let addString = `<p class='text-secondary mb-2'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                                    console.log(addList);
                                     addList.forEach(element => {
-                                        addString += "<p>";
-                                        addString += element;
-                                        addString += "</p>"
+                                        if (element != ""){
+                                            // addString += "<p>";
+                                            addString += element;
+                                            // addString += "</p>";
+                                        }
                                     });
+                                    console.log(addString);
                                     resultTable.row.add([
                                         `<a href='${validAlbums[i]['url']}' target="_blank">
                                         <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
