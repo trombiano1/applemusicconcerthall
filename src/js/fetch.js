@@ -163,6 +163,9 @@ $(document.body).on('click', '.worklink' ,function(e){
     // get rid of double space
     queryPieceName = queryPieceName.replaceAll("  ", " ");
 
+    // get rid of double quotes
+    queryPieceName = queryPieceName.replaceAll("\"", "");
+
     //get rid of end space
     queryPieceName.replace(/\s+$/, '');
 
@@ -576,7 +579,9 @@ function getRoles(rolesString){
             },
             success: function(retrievedResult) {
                 const data = retrievedResult;
-                if (data['performers']['readable'] !== undefined) {
+                if (data['performers']['readable'] == null) {
+                    resolve({});
+                } else {
                     data['performers']['readable'].forEach(element => {
                         if (element['role'] in result){
                             result[element['role']].push(element['name']);
@@ -588,13 +593,11 @@ function getRoles(rolesString){
                     $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
                     $('#progressText').html('Matching performers...');
                     resolve(result);
-                } else {
-                    resolve({});
                 }
             },
-            error: function(error) {
+            error: function(jqXHR, textStatus, errorThrown) {
                 //   console.log(`Error ${error}`)
-                showErrorModal(statusCode);
+                showErrorModal(jqXHR.status);
                 resolve(result);
             },
         });
@@ -662,9 +665,10 @@ function guessWorks(guessAPIArray, queryPieceId){
                 $('#progressText').html('Identifying works...');
                 resolve(found);
             },
-            error: function(error) {
-              showErrorModal(statusCode);
-              resolve(-1);
+            error: function(jqXHR, textStatus, errorThrown) {
+                //   console.log(`Error ${error}`)
+                showErrorModal(jqXHR.status);
+                resolve(result);
             },
           });
     });
