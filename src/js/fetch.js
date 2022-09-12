@@ -125,7 +125,7 @@ $(function() {
 $(document.body).on('click', '.filter' ,function(e){
     $([document.documentElement, document.body]).animate({
         scrollTop: $("#tableContainer").offset().top
-    }, 500);
+    }, 250);
     $('#searchBar').val($(this).attr('value'));
     resultTable.draw();
 });
@@ -470,6 +470,11 @@ function getResults(){
                     // show table
                     $('#progressContainer').addClass('d-none');
                     $('#tableWrapper').removeClass('d-none');
+
+                    // scroll
+                    $([document.documentElement, document.body]).animate({
+                        scrollTop: $("#tableContainer").offset().top
+                    }, 250);
                     
                     for (let i = 0; i < validAlbums.length; i++){
                         let assignedRoles = {};
@@ -506,7 +511,7 @@ function getResults(){
                         sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
                         for (let j = 0; j < queryPieceRoles.length; j++){
                             if (queryPieceRoles[j] in assignedRoles) {
-                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div>${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`);
+                                addList.push(`<div class='ic'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`);
                                 sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
                             } else {
                                 addList.push("");
