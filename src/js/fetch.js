@@ -134,6 +134,8 @@ $(document.body).on('click', '.worklink' ,function(e){
     $("#selectedWork").attr('style', 'color: #292b2c; text-decoration: none !important;');
     $('#worksCollapse').removeClass('show');
     $('#searchButton').removeClass('d-none');
+    $('#customQuery').addClass('d-none');
+    $("#selectedWork").attr('style', 'background-color: #fff !important; text-decoration: none !important;');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
     let originalQueryPieceName = queryPieceName;
@@ -165,7 +167,8 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName.replace(/\s+$/, '');
 
     // set button name
-    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId} Work ID: ${queryPieceId}</small> will be used for identification.`);
+    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId}, Work ID: ${queryPieceId} will be used for identification.</small>`);
+    $('#ids').removeClass('d-none');
     $('#searchQueryCustom').val(queryComposerName + " " + queryPieceName);
     $('#customQuery').removeClass('d-none');
     $('#selectedWork').html(originalQueryPieceName);
@@ -192,6 +195,14 @@ $('#searchButton').on('click', () => {
     getResults();
 });
 
+$('.customSearchInfo').on('click', () => {
+    if ($(".customSearchInfoBox.show")[0]) {
+        $('.customSearchInfoBox').removeClass('show');
+    } else {
+        $('.customSearchInfoBox').addClass('show');
+    }
+});
+
 $('#composer').on('input', () => {
     // hide others
     $('#genreContainer').addClass('d-none');
@@ -199,6 +210,8 @@ $('#composer').on('input', () => {
     $('#worksCollapse').removeClass('show');
     $('#searchButton').addClass('d-none');
     $('#composerDescription').removeClass('d-none');
+    $('#ids').addClass('d-none');
+    $('#customQuery').addClass('d-none');
 
     var val = document.getElementById("composer").value;
     var opts = document.getElementById('composersdatalist').childNodes;
@@ -221,6 +234,7 @@ $('#composer').on('input', () => {
 
 $('#genre').on('change', function() {
     $('#genre').attr('style', 'color: #292b2c');
+    $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
     $('#selectedWork').html("Select work from below:");
     $('#spinner').removeClass('d-none');
     listWorks(document.getElementById('genre').value);
@@ -228,6 +242,7 @@ $('#genre').on('change', function() {
 });
 
 $('#sort').on('change', function(){
+    $('#sort').attr('style', '');
     resultTable.order([parseInt(document.getElementById('sort').value), document.getElementById('sortUpDown').value]).draw();
 });
 
@@ -375,8 +390,10 @@ function getResults(){
 
                 for (let i = 0; i < sendAlbums.length; i++){
                     if (values[i] != -1){
-                        getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
-                        validAlbums.push(sendAlbums[i]);
+                        if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
+                            getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
+                            validAlbums.push(sendAlbums[i]);
+                        }
                     }
                 }
 
@@ -413,6 +430,7 @@ function getResults(){
                                         }
                     }
                     document.getElementById('sort').innerHTML = sortString;
+                    $('#sort').attr('style', 'color: #999');
 
                     // set header and hide columns
                     if (window.innerWidth < 600) {
@@ -558,21 +576,26 @@ function getRoles(rolesString){
             },
             success: function(retrievedResult) {
                 const data = retrievedResult;
-                data['performers']['readable'].forEach(element => {
-                    if (element['role'] in result){
-                        result[element['role']].push(element['name']);
-                    } else {
-                        result[element['role']] = [element['name']];
-                    }
-                });
-                doneRoles++;
-                $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
-                $('#progressText').html('Matching performers...');
-                resolve(result);
+                if (data['performers']['readable'] !== undefined) {
+                    data['performers']['readable'].forEach(element => {
+                        if (element['role'] in result){
+                            result[element['role']].push(element['name']);
+                        } else {
+                            result[element['role']] = [element['name']];
+                        }
+                    });
+                    doneRoles++;
+                    $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
+                    $('#progressText').html('Matching performers...');
+                    resolve(result);
+                } else {
+                    resolve({});
+                }
             },
             error: function(error) {
                 //   console.log(`Error ${error}`)
                 showErrorModal(statusCode);
+                resolve(result);
             },
         });
 
@@ -640,8 +663,8 @@ function guessWorks(guessAPIArray, queryPieceId){
                 resolve(found);
             },
             error: function(error) {
-              console.log(`Error ${error}`);
               showErrorModal(statusCode);
+              resolve(-1);
             },
           });
     });
@@ -715,22 +738,25 @@ function getSongCandidates(offset){
                             if (doneAlbums * 45 / totalAlbums > 45) {
                                 $('#progressText').html('So many albums! Looking for more...');
                             }
-                            if (doneAlbums * 45 / totalAlbums > 80) {
+                            if (doneAlbums * 45 / totalAlbums > 70) {
                                 $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
                             }
-                            if (doneAlbums * 45 / totalAlbums > 120) {
-                                $('#progressText').html("Some works might not work well. If so, please report.");
+                            if (doneAlbums * 45 / totalAlbums > 100) {
+                                $('#progressText').html("Some works might not work so well yet. If you find any, please report.");
                             }
-                            if (doneAlbums * 45 / totalAlbums > 160) {
+                            if (doneAlbums * 45 / totalAlbums > 130) {
                                 $('#progressText').html("I'm sorry everything is in English. 日本語版も気が向いたら作ります。");
                             }
-                            if (doneAlbums * 45 / totalAlbums > 200) {
+                            if (doneAlbums * 45 / totalAlbums > 160) {
                                 $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider contributing / donating...?");
                             }
                             resolve([values, cnt]);
                         }
                     )
                 }
+            } else if (request.readyState==4 && this.status != 200) {
+                showErrorModal(this.status);
+                resolve([]);
             }
         };
     });
@@ -768,6 +794,7 @@ function getSongsInAlbum(album){
                 resolve(album);
             } else if (request.readyState==4 && this.status != 200){
                 showErrorModal(this.status);
+                resolve(album);
             }
         }
     });

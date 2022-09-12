@@ -173,22 +173,29 @@ body {
 }
 
 .ViolaIcon {
-    background: url('images/violin.png');
+    background: url('images/viola.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
 
 .CelloIcon {
-    background: url('images/violin.png');
+    background: url('images/cello.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ContrabassIcon {
+    background: url('images/double-bass.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
 
 .BassIcon {
-    background: url('images/violin.png');
+    background: url('images/double-bass.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
+
 
 .FluteIcon {
     background: url('images/flute.png');

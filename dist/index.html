@@ -17,6 +17,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="errorModalContent">
+                    An error occured. Please reload and try again.
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
@@ -288,7 +289,23 @@
                         <span class="input-group-text" id="searchQueryCustomLabel">Search Term</span>
                         <input class="form-control" type="search" aria-label="" aria-describedby="searchQueryCustomLabel" id="searchQueryCustom">
                     </div>
-                    <p class="text-secondary ms-3" id="ids"><small>This will be used for searching the Apple Music database.<br /> If the auto-suggested query is not natural, please correct it before searching. <br />Simple but identifiable queries will work best.</small></p>
+                    <p class="text-secondary ms-3" id="ids">
+                        <small>
+                            This will be used for searching the Apple Music database. 
+                            <a class='customSearchInfo'><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                            </svg></a>
+                            <div class="customSearchInfoBox collapse text-secondary ms-4">
+                                If the auto-suggested query is not great, please correct it before searching. <br />Simple but identifiable queries in English will work best. <br />The albums will be narrowed down with the algorithm, so make it rather broad than specifc.<br /><br />
+                                <div class="ms-2">
+                                    Mozart Symphony 41  K.551 "Jupiter" → <span class='text-dark'>Mozart Symphony 41</span><br />
+                                    Berlioz Le carnaval romain → <span class='text-dark'>Berlioz Roman Carnival Overture</span><br/>
+                                    Chopin Etudes → <span class='text-dark'>Chopin Etudes op. 10</span>
+                                </div>
+                            </div>
+                        </small>
+                    </p>
                 </div>
                 
                 <button type="button" class="btn btn-danger d-none" id="searchButton">Search</button>
