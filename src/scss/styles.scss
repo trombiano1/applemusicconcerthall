@@ -92,6 +92,8 @@ body {
 }
 .albumart:hover {
     transform: skewY(-10deg) scaleX(0.97);
+    // border-right: 1px solid #555;
+    border-bottom: 1px solid #555;
 }
 @include media-breakpoint-up(sm) {
     .albumart {
