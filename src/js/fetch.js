@@ -818,7 +818,7 @@ function getSongCandidates(offset, includeCatalog){
                             $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
                         }
                         if (doneAlbums > 800) {
-                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee</a>☕️...?");
+                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me a coffee</a>☕️...?");
                         }
                         resolve([values, cnt]);
                     }
