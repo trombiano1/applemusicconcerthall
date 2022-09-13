@@ -1,19 +1,19 @@
 "use strict";
 import { Modal } from 'bootstrap'
+import pLimit from 'p-limit';
 
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
-const COMPOSER_IDS = {'John Adams': 149, 'Thomas Adès': 130, 'Isaac Albéniz': 216, 'Tomaso Albinoni': 27, 'George Antheil': 108, 'Malcolm Arnold': 20, 'Milton Babbitt': 180, 'Johann Sebastian Bach': 87, 'Carl Philipp Emanuel Bach': 192, 'Johann Christian Bach': 109, 'Mily Balakirev': 21, 'Samuel Barber': 19, 'Béla Bartók': 125, 'Arnold Bax': 103, 'Ludwig van Beethoven': 145, 'Vincenzo Bellini': 51, 'Alban Berg': 210, 'Luciano Berio': 133, 'Hector Berlioz': 175, 'Leonard Bernstein': 135, 'Franz Berwald': 195, 'Heinrich Franz von Biber': 47, 'Harrison Birtwistle': 48, 'Georges Bizet': 68, 'Ernest Bloch': 106, 'Luigi Boccherini': 66, 'Alexander Borodin': 43, 'Pierre Boulez': 132, 'Joly Braga Santos': 153, 'Johannes Brahms': 80, 'Benjamin Britten': 169, 'Max Bruch': 184, 'Anton Bruckner': 2, 'Ferruccio Busoni': 84, 'Dietrich Buxtehude': 73, 'William Byrd': 86, 'John Cage': 56, 'Camargo Guarnieri': 159, 'Elliott Carter': 163, 'Emmanuel Chabrier': 123, 'Marc-Antoine Charpentier': 9, 'Ernest Chausson': 61, 'Carlos Chávez': 174, 'Luigi Cherubini': 120, 'Frédéric Chopin': 152, 'Aaron Copland': 170, 'Arcangelo Corelli': 139, 'John Corigliano': 144, 'François Couperin': 128, 'George Crumb': 31, 'César Cui': 71, "Vincent d'Indy": 127, 'Michael Daugherty': 81, 'Claude Debussy': 105, 'Léo Delibes': 193, 'Frederick Delius': 8, 'Josquin Des Prez': 50, 'Karl Ditters von Dittersdorf': 206, 'Ernst von Dohnányi': 112, 'Gaetano Donizetti': 89, 'John Dowland': 102, 'Guillaume Dufay': 82, 'Paul Dukas': 116, 'Maurice Duruflé': 91, 'Henri Dutilleux': 110, 'Antonín Dvořák': 189, 'Edward Elgar': 198, 'George Enescu': 38, 'Manuel de Falla': 37, 'Gabriel Fauré': 53, 'John Field': 74, 'César Franck': 12, 'Girolamo Frescobaldi': 58, 'George Gershwin': 136, 'Carlo Gesualdo': 14, 'Orlando Gibbons': 151, 'Alberto Ginastera': 32, 'Philip Glass': 95, 'Alexander Glazunov': 179, 'Reinhold Glière': 85, 'Mikhail Ivanovich Glinka': 156, 'Christoph Willibald von Gluck': 92, 'Karl Goldmark': 1, 'Antonio Carlos Gomes': 207, 'Henryk Górecki': 16, 'Morton Gould': 70, 'Charles Gounod': 29, 'Percy Grainger': 99, 'Enrique Granados': 76, 'Edvard Grieg': 162, 'Sofia Gubaidulina': 172, 'George Frideric Handel': 67, 'Howard Hanson': 42, 'Roy Harris': 201, 'Franz Joseph Haydn': 208, 'Hans Werner Henze': 155, 'Victor Herbert': 94, 'Paul Hindemith': 154, 'Vagn Holmboe': 158, 'Gustav Holst': 75, 'Arthur Honegger': 200, 'Johann Nepomuk Hummel': 30, 'Engelbert Humperdinck': 15, 'Jacques Ibert': 122, 'Charles Ives': 217, 'Leoš Janáček': 96, 'Clément Janequin': 23, 'Scott Joplin': 148, 'Dmitry Kabalevsky': 63, 'Aram Khachaturian': 218, 'Zoltán Kodály': 34, 'Erich Wolfgang Korngold': 7, 'Edouard Lalo': 59, 'Orlande de Lassus': 88, 'Ruggero Leoncavallo': 194, 'Léonin': 220, 'György Ligeti': 26, 'Franz Liszt': 197, 'Fernando Lopes-Graça': 119, 'Jean-Baptiste Lully': 10, 'Witold Lutoslawski': 142, 'Edward MacDowell': 114, 'Guillaume de Machaut': 157, 'Gustav Mahler': 77, 'Marin Marais': 204, 'Benedetto Marcello': 177, 'Alessandro Marcello': 187, 'Bohuslav Martinů': 11, 'Pietro Mascagni': 69, 'Jules Massenet': 124, 'Felix Mendelssohn': 147, 'Olivier Messiaen': 150, 'Francisco Mignone': 64, 'Darius Milhaud': 121, 'Ernest Moeran': 164, 'Claudio Monteverdi': 39, 'Wolfgang Amadeus Mozart': 196, 'Modest Mussorgsky': 181, 'Carl Nielsen': 52, 'Luigi Nono': 111, 'Jacob Obrecht': 28, 'Johannes Ockeghem': 117, 'Jacques Offenbach': 134, 'Carl Orff': 93, 'Johann Pachelbel': 115, 'Niccolò Paganini': 3, 'Giovanni Pierluigi da Palestrina': 214, 'Arvo Pärt': 5, 'Krzysztof Penderecki': 203, 'Giovanni Battista Pergolesi': 113, 'Pérotin': 219, 'Astor Piazzolla': 40, 'Francis Poulenc': 202, 'Michael Praetorius': 78, 'Sergei Prokofiev': 185, 'Giacomo Puccini': 146, 'Henry Purcell': 199, 'Sergei Rachmaninoff': 188, 'Jean-Philippe Rameau': 178, 'Einojuhani Rautavaara': 100, 'Maurice Ravel': 57, 'Max Reger': 72, 'Steve Reich': 176, 'Ottorino Respighi': 173, 'Wolfgang Rihm': 90, 'Nikolai Rimsky-Korsakov': 118, 'Joaquín Rodrigo': 215, 'Ned Rorem': 107, 'Gioachino Rossini': 60, 'Albert Roussel': 140, 'Camille Saint-Saëns': 45, 'Antonio Salieri': 143, 'Erik Satie': 104, 'Domenico Scarlatti': 97, 'Alessandro Scarlatti': 65, 'Franz Schmidt': 160, 'Alfred Schnittke': 137, 'Arnold Schoenberg': 62, 'Franz Schubert': 183, 'William Schuman': 24, 'Robert Schumann': 129, 'Heinrich Schütz': 191, 'Alexander Scriabin': 18, 'Dmitri Shostakovich': 46, 'Jean Sibelius': 186, 'Bedrich Smetana': 211, 'Fernando Sor': 212, 'Louis Spohr': 166, 'Carl Stamitz': 209, 'Wilhelm Stenhammar': 4, 'Karlheinz Stockhausen': 101, 'Richard Strauss': 171, 'Johann Strauss Jr': 165, 'Igor Stravinsky': 190, 'Josef Suk': 33, 'Jan Pieterszoon Sweelinck': 182, 'Karol Szymanowski': 49, 'Toru Takemitsu': 213, 'Thomas Tallis': 126, 'Giuseppe Tartini': 167, 'John Taverner': 54, 'Pyotr Ilyich Tchaikovsky': 79, 'Georg Philipp Telemann': 83, 'Michael Tippett': 13, 'Edgard Varèse': 22, 'Ralph Vaughan Williams': 36, 'Giuseppe Verdi': 35, 'Tomás Luis de Victoria': 205, 'Heitor Villa-Lobos': 55, 'Antonio Vivaldi': 98, 'Richard Wagner': 138, 'William Walton': 44, 'Carl Maria von Weber': 168, 'Anton Webern': 6, 'Kurt Weill': 131, 'Charles-Marie Widor': 41, 'Hugo Wolf': 161, 'Iannis Xenakis': 17, 'Eugene Ysaÿe': 141, 'Alexander von Zemlinsky': 25}
-
-const performerTypes = {'Chamber' : ['Ensemble'], 'Orchestral':['Conductor', 'Orchestra'], 'Keyboard':['Solist'], 'Stage':['Conductor', 'Orchestra'], 'Concerto' : ['Solist', 'Conductor', 'Orchestra']};
-
 var $ = require('jquery');
 window.$ = $;
+
+const COMPOSER_IDS = {'John Adams': 149, 'Thomas Adès': 130, 'Isaac Albéniz': 216, 'Tomaso Albinoni': 27, 'George Antheil': 108, 'Malcolm Arnold': 20, 'Milton Babbitt': 180, 'Johann Sebastian Bach': 87, 'Carl Philipp Emanuel Bach': 192, 'Johann Christian Bach': 109, 'Mily Balakirev': 21, 'Samuel Barber': 19, 'Béla Bartók': 125, 'Arnold Bax': 103, 'Ludwig van Beethoven': 145, 'Vincenzo Bellini': 51, 'Alban Berg': 210, 'Luciano Berio': 133, 'Hector Berlioz': 175, 'Leonard Bernstein': 135, 'Franz Berwald': 195, 'Heinrich Franz von Biber': 47, 'Harrison Birtwistle': 48, 'Georges Bizet': 68, 'Ernest Bloch': 106, 'Luigi Boccherini': 66, 'Alexander Borodin': 43, 'Pierre Boulez': 132, 'Joly Braga Santos': 153, 'Johannes Brahms': 80, 'Benjamin Britten': 169, 'Max Bruch': 184, 'Anton Bruckner': 2, 'Ferruccio Busoni': 84, 'Dietrich Buxtehude': 73, 'William Byrd': 86, 'John Cage': 56, 'Camargo Guarnieri': 159, 'Elliott Carter': 163, 'Emmanuel Chabrier': 123, 'Marc-Antoine Charpentier': 9, 'Ernest Chausson': 61, 'Carlos Chávez': 174, 'Luigi Cherubini': 120, 'Frédéric Chopin': 152, 'Aaron Copland': 170, 'Arcangelo Corelli': 139, 'John Corigliano': 144, 'François Couperin': 128, 'George Crumb': 31, 'César Cui': 71, "Vincent d'Indy": 127, 'Michael Daugherty': 81, 'Claude Debussy': 105, 'Léo Delibes': 193, 'Frederick Delius': 8, 'Josquin Des Prez': 50, 'Karl Ditters von Dittersdorf': 206, 'Ernst von Dohnányi': 112, 'Gaetano Donizetti': 89, 'John Dowland': 102, 'Guillaume Dufay': 82, 'Paul Dukas': 116, 'Maurice Duruflé': 91, 'Henri Dutilleux': 110, 'Antonín Dvořák': 189, 'Edward Elgar': 198, 'George Enescu': 38, 'Manuel de Falla': 37, 'Gabriel Fauré': 53, 'John Field': 74, 'César Franck': 12, 'Girolamo Frescobaldi': 58, 'George Gershwin': 136, 'Carlo Gesualdo': 14, 'Orlando Gibbons': 151, 'Alberto Ginastera': 32, 'Philip Glass': 95, 'Alexander Glazunov': 179, 'Reinhold Glière': 85, 'Mikhail Ivanovich Glinka': 156, 'Christoph Willibald von Gluck': 92, 'Karl Goldmark': 1, 'Antonio Carlos Gomes': 207, 'Henryk Górecki': 16, 'Morton Gould': 70, 'Charles Gounod': 29, 'Percy Grainger': 99, 'Enrique Granados': 76, 'Edvard Grieg': 162, 'Sofia Gubaidulina': 172, 'George Frideric Handel': 67, 'Howard Hanson': 42, 'Roy Harris': 201, 'Franz Joseph Haydn': 208, 'Hans Werner Henze': 155, 'Victor Herbert': 94, 'Paul Hindemith': 154, 'Vagn Holmboe': 158, 'Gustav Holst': 75, 'Arthur Honegger': 200, 'Johann Nepomuk Hummel': 30, 'Engelbert Humperdinck': 15, 'Jacques Ibert': 122, 'Charles Ives': 217, 'Leoš Janáček': 96, 'Clément Janequin': 23, 'Scott Joplin': 148, 'Dmitry Kabalevsky': 63, 'Aram Khachaturian': 218, 'Zoltán Kodály': 34, 'Erich Wolfgang Korngold': 7, 'Edouard Lalo': 59, 'Orlande de Lassus': 88, 'Ruggero Leoncavallo': 194, 'Léonin': 220, 'György Ligeti': 26, 'Franz Liszt': 197, 'Fernando Lopes-Graça': 119, 'Jean-Baptiste Lully': 10, 'Witold Lutoslawski': 142, 'Edward MacDowell': 114, 'Guillaume de Machaut': 157, 'Gustav Mahler': 77, 'Marin Marais': 204, 'Benedetto Marcello': 177, 'Alessandro Marcello': 187, 'Bohuslav Martinů': 11, 'Pietro Mascagni': 69, 'Jules Massenet': 124, 'Felix Mendelssohn': 147, 'Olivier Messiaen': 150, 'Francisco Mignone': 64, 'Darius Milhaud': 121, 'Ernest Moeran': 164, 'Claudio Monteverdi': 39, 'Wolfgang Amadeus Mozart': 196, 'Modest Mussorgsky': 181, 'Carl Nielsen': 52, 'Luigi Nono': 111, 'Jacob Obrecht': 28, 'Johannes Ockeghem': 117, 'Jacques Offenbach': 134, 'Carl Orff': 93, 'Johann Pachelbel': 115, 'Niccolò Paganini': 3, 'Giovanni Pierluigi da Palestrina': 214, 'Arvo Pärt': 5, 'Krzysztof Penderecki': 203, 'Giovanni Battista Pergolesi': 113, 'Pérotin': 219, 'Astor Piazzolla': 40, 'Francis Poulenc': 202, 'Michael Praetorius': 78, 'Sergei Prokofiev': 185, 'Giacomo Puccini': 146, 'Henry Purcell': 199, 'Sergei Rachmaninoff': 188, 'Jean-Philippe Rameau': 178, 'Einojuhani Rautavaara': 100, 'Maurice Ravel': 57, 'Max Reger': 72, 'Steve Reich': 176, 'Ottorino Respighi': 173, 'Wolfgang Rihm': 90, 'Nikolai Rimsky-Korsakov': 118, 'Joaquín Rodrigo': 215, 'Ned Rorem': 107, 'Gioachino Rossini': 60, 'Albert Roussel': 140, 'Camille Saint-Saëns': 45, 'Antonio Salieri': 143, 'Erik Satie': 104, 'Domenico Scarlatti': 97, 'Alessandro Scarlatti': 65, 'Franz Schmidt': 160, 'Alfred Schnittke': 137, 'Arnold Schoenberg': 62, 'Franz Schubert': 183, 'William Schuman': 24, 'Robert Schumann': 129, 'Heinrich Schütz': 191, 'Alexander Scriabin': 18, 'Dmitri Shostakovich': 46, 'Jean Sibelius': 186, 'Bedrich Smetana': 211, 'Fernando Sor': 212, 'Louis Spohr': 166, 'Carl Stamitz': 209, 'Wilhelm Stenhammar': 4, 'Karlheinz Stockhausen': 101, 'Richard Strauss': 171, 'Johann Strauss Jr': 165, 'Igor Stravinsky': 190, 'Josef Suk': 33, 'Jan Pieterszoon Sweelinck': 182, 'Karol Szymanowski': 49, 'Toru Takemitsu': 213, 'Thomas Tallis': 126, 'Giuseppe Tartini': 167, 'John Taverner': 54, 'Pyotr Ilyich Tchaikovsky': 79, 'Georg Philipp Telemann': 83, 'Michael Tippett': 13, 'Edgard Varèse': 22, 'Ralph Vaughan Williams': 36, 'Giuseppe Verdi': 35, 'Tomás Luis de Victoria': 205, 'Heitor Villa-Lobos': 55, 'Antonio Vivaldi': 98, 'Richard Wagner': 138, 'William Walton': 44, 'Carl Maria von Weber': 168, 'Anton Webern': 6, 'Kurt Weill': 131, 'Charles-Marie Widor': 41, 'Hugo Wolf': 161, 'Iannis Xenakis': 17, 'Eugene Ysaÿe': 141, 'Alexander von Zemlinsky': 25}
 
 // variables
 
 // history
 let composerIdHistory = {};
+// reset history
 let idHistory = {};
 
 // query
@@ -319,7 +319,7 @@ function listWorks(genre){
             });
             newData.forEach(work => {
                 HTMLString += `<a href="#" class="worklink list-group-item list-group-item-action w-100" value="${work['id']}">${work['title']}</a>`;
-                // HTMLString += `<li class="list-group-item" value=${work['id']}>${work['title']}</li>`;
+
             });
             document.getElementById('worksList').innerHTML = HTMLString;
             $('#workContainer').removeClass('d-none');
@@ -333,9 +333,6 @@ function listWorks(genre){
 
 // Get results logic ========================================================================================
 function getResults(){
-    // reset history
-    idHistory = {};
-
     // reset progress bar
     totalAlbums = 200;
     doneAlbums = 0;
@@ -343,6 +340,7 @@ function getResults(){
     doneGuesses = 0;
     totalRoles = 0;
     doneRoles = 0;
+    idHistory = {};
 
     console.log(queryComposerId);
     console.log(queryComposerName);
@@ -352,8 +350,8 @@ function getResults(){
 
     getAlbums().then(
         function(value){
+            console.log(value.length);
             console.log("Albums retrieved");
-            // $('#progressbar').attr('style', 'width: 45%;');
             let albums = value;
             let funcs = [];
             let trackNumbers = [];
@@ -396,14 +394,32 @@ function getResults(){
                 });
 
                 while(guesserAPIArray.length) {
-                    funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
+                    // funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
+                    funcs.push([guesserAPIArray.splice(0,5), queryPieceId]);
                     trackNumbers.push(albumTrackNumbers);
                     sendAlbums.push(album);
                 }
 
             });
+
+            const limit = pLimit(1000);
+
+            // Create an array of our promises using map (fetchData() returns a promise)
+            let promises = funcs.map(func => {
+            
+                // wrap the function we are calling in the limit function we defined above
+                // return limit(() => fetchData(url));
+                return limit(() => guessWorks(func[0], func[1]));
+            });
+
             totalGuesses = funcs.length;
-            Promise.all(funcs).then((values) => {
+
+            (async () => {
+                // Only three promises are run at once (as defined above)
+                const values = await Promise.all(promises);
+                // console.log(result);
+
+            // Promise.all(funcs).then((values) => {
                 console.log("Guesses retrieved");
                 resultTable.row().remove();
 
@@ -415,13 +431,23 @@ function getResults(){
                         if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
                             getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
                             validAlbums.push(sendAlbums[i]);
+                        } else {
+                            getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
+                            validAlbums.push(sendAlbums[i]);
                         }
+                    } else {
+                        // if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
+                            // getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
+                            // validAlbums.push(sendAlbums[i]);
+                        // }
                     }
                 }
 
                 totalRoles = getRolesFuncs.length;
 
+                let count = 0;
                 Promise.all(getRolesFuncs).then((retrievedRoles) => {
+                    // console.log(retrievedRoles.length);
                     const counts = {};
                     console.log("Roles retrieved");
                     retrievedRoles.forEach(roles => {
@@ -577,20 +603,18 @@ function getResults(){
                                     }
                                 }
                                 addList.push(addListStr);
-                                sortList.push("zzzzzzzzz");
+                                sortList.push("zzzzzzzzz"); // sort last
                             }
                         }
                         for (let j = queryPieceRoles.length; j < 4; j++){
                             addList.push("");
                             sortList.push("");
                         }
-
-                        if (addList.length == 4){ // assert
-                            if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
+                        // if (addList.length == 4){ // assert
+                            // if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
                                 if (window.innerWidth < 600) {
                                     // mobile
                                     let addString = `<p class='text-secondary mb-2'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
-                                    console.log(addList);
                                     addList.forEach(element => {
                                         if (element != ""){
                                             // addString += "<p>";
@@ -598,7 +622,6 @@ function getResults(){
                                             // addString += "</p>";
                                         }
                                     });
-                                    console.log(addString);
                                     resultTable.row.add([
                                         `<a href='${validAlbums[i]['url']}' target="_blank">
                                         <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
@@ -616,12 +639,13 @@ function getResults(){
                                         validAlbums[i]['releaseDate'].split('-')[0]
                                     ].concat(addList).concat(sortList)).draw(false);
                                 }
-                                idHistory[validAlbums[i]['id']] = 1;
-                            }
+                                // idHistory[validAlbums[i]['id']] = 1;
+                            // }
                         }
-                    }
+                    // }
                 });
-            });
+            // });
+            })();
         }
     );
 }
@@ -658,34 +682,33 @@ function getAlbums() {
 function getSongCandidates(offset){
     return new Promise(function(resolve){
         console.log(offset);
-        // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=25&types=albums&term=Tchaikovsky+Symphony+1'
-        // const url = 'https://api.music.apple.com/v1/catalog/us/search?limit=5&types=songs&term=poulenc+trio'
-        // const url = `https://api.music.apple.com/v1/catalog/us/search?offset=${offset}&limit=25&term=Tchaikovsky+symphony+5&types=albums`
-        // const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${queryComposerName}+${queryPieceName.replaceAll(' ', '+')}&types=albums`
-        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums`
+        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
+        // const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
 
         let request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.setRequestHeader('Authorization', "Bearer "+developerToken);
         request.send();
-        
-        let albums = [];
 
         request.onreadystatechange = function () {
             if (request.readyState==4 && this.status == 200) {
                 const data = JSON.parse(this.responseText);
                 let funcs = [];
+                let funcsSongs = [];
                 let cnt = true;
 
-                if (data['meta']['results']['order']['length'] == '0'){
-                    cnt = false;
-                    resolve([],cnt);
-                } else {
-                    // // for debug; cuts off at 100
-                    // if (offset > 4){
-                    //     cnt = false;
-                    // }
+                // console.log(data);
+                // // for debug; cuts off at 100
+                // if (offset > 4){
+                //     cnt = false;
+                // }
 
+                if (data['results']['albums'] === undefined && data['results']['songs'] === undefined){
+                    cnt = false;
+                    resolve([[], false]);
+                }
+
+                if (data['results']['albums'] !== undefined) {
                     data['results']['albums']['data'].forEach(element => {
                         let album = {};
                         album["id"] = element['id'];
@@ -694,28 +717,61 @@ function getSongCandidates(offset){
                         album["recordLabel"] = element['attributes']['recordLabel'];
                         album["url"] = element['attributes']['url'];
                         album["artworkUrl"] = element['attributes']['artwork']['url'];
-                        funcs.push(getSongsInAlbum(album));
-                    });
-                    Promise.all(funcs).then(
-                        function(values){
-                            doneAlbums += 25;
-                            $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
-                            if (doneAlbums * 45 / totalAlbums > 45) {
-                                $('#progressText').html('So many albums! Looking for more...');
-                            }
-                            if (doneAlbums * 45 / totalAlbums > 70) {
-                                $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
-                            }
-                            if (doneAlbums * 45 / totalAlbums > 130) {
-                                $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
-                            }
-                            if (doneAlbums * 45 / totalAlbums > 160) {
-                                $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / donating...?");
-                            }
-                            resolve([values, cnt]);
+                        if (!(album['id'] in idHistory)) {
+                            funcs.push(getSongsInAlbum(album));
+                            idHistory[album['id']] = 1;
                         }
-                    )
+                    });
                 }
+
+                if (data['results']['songs'] !== undefined) {
+                    data['results']['songs']['data'].forEach(element => {
+                        let album = {};
+                        album["id"] = element['attributes']['url'].split('/')[6].split('?')[0];
+                        album["name"] = element['attributes']['albumName'];
+                        album["releaseDate"] = element['attributes']['releaseDate'];
+                        // album["recordLabel"] = element['']
+                        album["url"] = element['attributes']['url'];
+                        album["artworkUrl"] = element['attributes']['artwork']['url'];
+                        let songInAlbum = {};
+                        songInAlbum["artistName"] = element['attributes']['artistName'];
+                        songInAlbum["attribution"] = element['attributes']['attribution'];
+                        songInAlbum["composerName"] = element['attributes']['composerName'];
+                        // songInAlbum["movementCount"] = element['attributes']['movementCount'];
+                        // songInAlbum["movementName"] = element['attributes']['movementName'];
+                        // songInAlbum["movementNumber"] = element['attributes']['movementNumber'];
+                        songInAlbum["trackNumber"] = element['attributes']['trackNumber'];
+                        songInAlbum["name"] = element['attributes']['name'];
+                        album['songs'] = [songInAlbum];
+                        if (!(album['id'] in idHistory)) {
+                            funcsSongs.push(album);
+                            idHistory[album['id']] = 1;
+                        }
+                    });
+                }
+
+                Promise.all(funcs).then(
+                    function(values) {
+                        values = values.concat(funcsSongs);
+                        doneAlbums += 25;
+                        $('#progressbar').html(Object.keys(idHistory).length);
+                        $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
+                        if (doneAlbums * 45 / totalAlbums > 45) {
+                            $('#progressText').html('So many albums! Looking for more...');
+                        }
+                        if (doneAlbums * 45 / totalAlbums > 70) {
+                            $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
+                        }
+                        if (doneAlbums * 45 / totalAlbums > 130) {
+                            $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
+                        }
+                        if (doneAlbums * 45 / totalAlbums > 160) {
+                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee☕️</a>...?");
+                        }
+                        resolve([values, cnt]);
+                    }
+                )
+
             } else if (request.readyState==4 && this.status != 200) {
                 showErrorModal(this.status);
                 resolve([]);
@@ -770,6 +826,7 @@ function getSongsInAlbum(album){
 // Open Opus ----------------------------------------------------------------------------
 function guessWorks(guessAPIArray, queryPieceId){
     $('#progressText').html('Identifying works...');
+    // $('#progressbar').html(`45%`);
     return new Promise(function(resolve){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
@@ -790,13 +847,14 @@ function guessWorks(guessAPIArray, queryPieceId){
                     }
                 }
                 doneGuesses++;
+                console.log(doneGuesses, totalGuesses);
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
+                $('#progressbar').html(`${Math.round(Math.min(doneGuesses / totalGuesses * 40 + 45, 85))}%`);
                 $('#progressText').html('Identifying works...');
                 resolve(found);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                //   console.log(`Error ${error}`)
-                showErrorModal(jqXHR.status);
+                showErrorModal(textStatus);
                 resolve(result);
             },
           });
@@ -816,12 +874,6 @@ function getRoles(rolesString){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`,
             type: "GET",
-            // dataType: "json",
-            // contentType: "application/json",
-            // data: JSON.stringify({
-            //     works: guessAPIArray
-            // }),
-            // set the request header authorization to the bearer token that is generated
             headers: {
               "X-Requested-With": "XMLHttpRequest",
             },
@@ -839,13 +891,13 @@ function getRoles(rolesString){
                     });
                     doneRoles++;
                     $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
+                    $('#progressbar').html(`${Math.round(Math.min(doneRoles / totalRoles * 18 + 85, 100))}%`);
                     $('#progressText').html('Matching performers...');
                     resolve(result);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                //   console.log(`Error ${error}`)
-                showErrorModal(jqXHR.status);
+                showErrorModal(textStatus);
                 resolve(result);
             },
         });
