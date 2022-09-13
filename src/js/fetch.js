@@ -13,6 +13,8 @@ const COMPOSER_IDS = {'John Adams': 149, 'Thomas Adès': 130, 'Isaac Albéniz': 
 
 // history
 let composerIdHistory = {};
+// reset history
+let idHistory = {};
 
 // query
 let queryComposerName;
@@ -338,6 +340,7 @@ function getResults(){
     doneGuesses = 0;
     totalRoles = 0;
     doneRoles = 0;
+    idHistory = {};
 
     console.log(queryComposerId);
     console.log(queryComposerName);
@@ -652,9 +655,6 @@ function getResults(){
  * 再帰的にApple Musicが出せる全部のalbumを取得する
  * @return {Array.<Object>} songsの入ったalbumsのArray
  */
-// reset history
-let idHistory = {};
-
 function getAlbums() {
     return new Promise(function(resolve){
         let albums = [];
@@ -766,7 +766,7 @@ function getSongCandidates(offset){
                             $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
                         }
                         if (doneAlbums * 45 / totalAlbums > 160) {
-                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / donating...?");
+                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee☕️</a>...?");
                         }
                         resolve([values, cnt]);
                     }
