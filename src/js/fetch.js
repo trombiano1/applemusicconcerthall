@@ -1,5 +1,6 @@
 "use strict";
 import { Modal } from 'bootstrap'
+import pLimit from 'p-limit';
 
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
@@ -348,7 +349,6 @@ function getResults(){
         function(value){
             console.log(value.length);
             console.log("Albums retrieved");
-            // $('#progressbar').attr('style', 'width: 45%;');
             let albums = value;
             let funcs = [];
             let trackNumbers = [];
@@ -391,14 +391,32 @@ function getResults(){
                 });
 
                 while(guesserAPIArray.length) {
-                    funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
+                    // funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
+                    funcs.push([guesserAPIArray.splice(0,5), queryPieceId]);
                     trackNumbers.push(albumTrackNumbers);
                     sendAlbums.push(album);
                 }
 
             });
+
+            const limit = pLimit(1000);
+
+            // Create an array of our promises using map (fetchData() returns a promise)
+            let promises = funcs.map(func => {
+            
+                // wrap the function we are calling in the limit function we defined above
+                // return limit(() => fetchData(url));
+                return limit(() => guessWorks(func[0], func[1]));
+            });
+
             totalGuesses = funcs.length;
-            Promise.all(funcs).then((values) => {
+
+            (async () => {
+                // Only three promises are run at once (as defined above)
+                const values = await Promise.all(promises);
+                // console.log(result);
+
+            // Promise.all(funcs).then((values) => {
                 console.log("Guesses retrieved");
                 resultTable.row().remove();
 
@@ -623,7 +641,8 @@ function getResults(){
                         }
                     // }
                 });
-            });
+            // });
+            })();
         }
     );
 }
@@ -735,7 +754,7 @@ function getSongCandidates(offset){
                     function(values) {
                         values = values.concat(funcsSongs);
                         doneAlbums += 25;
-                        $('#progressbar').html(doneAlbums);
+                        $('#progressbar').html(Object.keys(idHistory).length);
                         $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
                         if (doneAlbums * 45 / totalAlbums > 45) {
                             $('#progressText').html('So many albums! Looking for more...');
@@ -807,7 +826,7 @@ function getSongsInAlbum(album){
 // Open Opus ----------------------------------------------------------------------------
 function guessWorks(guessAPIArray, queryPieceId){
     $('#progressText').html('Identifying works...');
-    $('#progressbar').html(`45%`);
+    // $('#progressbar').html(`45%`);
     return new Promise(function(resolve){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
@@ -828,6 +847,7 @@ function guessWorks(guessAPIArray, queryPieceId){
                     }
                 }
                 doneGuesses++;
+                console.log(doneGuesses, totalGuesses);
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 $('#progressbar').html(`${Math.round(Math.min(doneGuesses / totalGuesses * 40 + 45, 85))}%`);
                 $('#progressText').html('Identifying works...');
