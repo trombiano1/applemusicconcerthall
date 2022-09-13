@@ -10,6 +10,8 @@ const performerTypes = {'Chamber' : ['Ensemble'], 'Orchestral':['Conductor', 'Or
 var $ = require('jquery');
 window.$ = $;
 
+// variables
+
 // history
 let composerIdHistory = {};
 let idHistory = {};
@@ -30,6 +32,7 @@ let doneGuesses;
 let totalRoles;
 let doneRoles;
 
+// datatable variable
 var resultTable = $('#resultTable').DataTable({
     responsive: true,
     // dom: "<'col-sm-12 col-md-4'><'col-sm-12 col-md-4'f><'col-sm-12 col-md-4'l>",
@@ -75,61 +78,48 @@ var resultTable = $('#resultTable').DataTable({
       ]
 });
 
-$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-    let searchterm = $('#searchBar').val();
-    let terms = searchterm.split(" ");
-    let columns = [];
+// Search UI -------------------------------------------------------------------------
+// Composer selected
+$('#composer').on('input', () => {
+    // hide others
+    $('#genreContainer').addClass('d-none');
+    $('#workContainer').addClass('d-none');
+    $('#worksCollapse').removeClass('show');
+    $('#searchButton').addClass('d-none');
+    $('#composerDescription').removeClass('d-none');
+    $('#ids').addClass('d-none');
+    $('#customQuery').addClass('d-none');
 
-    if (searchterm == "") {
-        return true;
+    var val = document.getElementById("composer").value;
+    var opts = document.getElementById('composersdatalist').childNodes;
+    for (var i = 0; i < opts.length; i++) {
+      if (opts[i].value === val) {
+        // An item was selected from the list!
+        // yourCallbackHere()
+        queryComposerId = COMPOSER_IDS[opts[i].value];
+        queryComposerName = opts[i].value.split(/ /).pop();
+        $("#spinner").removeClass("d-none");
+        $('#searchQueryCustom').attr('style', 'color: #999');
+        $('#genre').attr('style', 'color: #999');
+        $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
+        $('#composerDescription').addClass('d-none');
+        getGenres();
+        break;
+      }
     }
-
-    for (let i = 0; i < 5; i++) {
-        columns.push(data[i + 1]);
-    }
-    
-    for (let i = 0; i < terms.length; i++) {
-        let found = false;
-        let term = terms[i];
-        for (let i = 0; i < 5; i++) {
-            if ((columns[i]).toLowerCase().includes(term.toLowerCase())){
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-        } else {
-            return false;
-        }
-    }
-    return true;
 });
 
-$('#searchBar').on('keyup', function () {
-    resultTable.draw();
+// Genre selected
+$('#genre').on('change', function() {
+    $('#genre').attr('style', 'color: #292b2c');
+    $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
+    $('#selectedWork').html("Select work from below:");
+    $('#spinner').removeClass('d-none');
+    listWorks(document.getElementById('genre').value);
+    // $('#worksCollapse').collapse();
 });
 
-$('#searchBar').on('search', function () {
-    resultTable.draw();
-});
-
-$('#searchQueryCustom').on('click', function () {
-    $('#searchQueryCustom').attr('style', 'color: #000');
-});
-
-// styles
-$(function() { 
-    $("#progressbar").addClass("dark-red-background");
- });
-
-$(document.body).on('click', '.filter' ,function(e){
-    $([document.documentElement, document.body]).animate({
-        scrollTop: $("#tableContainer").offset().top
-    }, 250);
-    $('#searchBar').val($(this).attr('value'));
-    resultTable.draw();
-});
-
+// Work selected
 $(document.body).on('click', '.worklink' ,function(e){
     $("#selectedWork").attr('style', 'color: #292b2c; text-decoration: none !important;');
     $('#worksCollapse').removeClass('show');
@@ -177,6 +167,12 @@ $(document.body).on('click', '.worklink' ,function(e){
     $('#selectedWork').html(originalQueryPieceName);
 });
 
+// Custom search query clicked
+$('#searchQueryCustom').on('click', function () {
+    $('#searchQueryCustom').attr('style', 'color: #000');
+});
+
+// Search button pressed
 $('#searchButton').on('click', () => {
     // show table container and progress
     $('#tableContainer').removeClass('d-none');
@@ -198,6 +194,8 @@ $('#searchButton').on('click', () => {
     getResults();
 });
 
+// Other UI------------------
+// Info box
 $('.customSearchInfo').on('click', () => {
     if ($(".customSearchInfoBox.show")[0]) {
         $('.customSearchInfoBox').removeClass('show');
@@ -206,44 +204,54 @@ $('.customSearchInfo').on('click', () => {
     }
 });
 
-$('#composer').on('input', () => {
-    // hide others
-    $('#genreContainer').addClass('d-none');
-    $('#workContainer').addClass('d-none');
-    $('#worksCollapse').removeClass('show');
-    $('#searchButton').addClass('d-none');
-    $('#composerDescription').removeClass('d-none');
-    $('#ids').addClass('d-none');
-    $('#customQuery').addClass('d-none');
+// Filter
+$(document.body).on('click', '.filter' ,function(e){
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $("#tableContainer").offset().top
+    }, 250);
+    $('#searchBar').val($(this).attr('value'));
+    resultTable.draw();
+});
 
-    var val = document.getElementById("composer").value;
-    var opts = document.getElementById('composersdatalist').childNodes;
-    for (var i = 0; i < opts.length; i++) {
-      if (opts[i].value === val) {
-        // An item was selected from the list!
-        // yourCallbackHere()
-        queryComposerId = COMPOSER_IDS[opts[i].value];
-        queryComposerName = opts[i].value.split(/ /).pop();
-        $("#spinner").removeClass("d-none");
-        $('#searchQueryCustom').attr('style', 'color: #999');
-        $('#genre').attr('style', 'color: #999');
-        $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
-        $('#composerDescription').addClass('d-none');
-        getGenres();
-        break;
-      }
+$('#searchBar').on('keyup', function () {
+    resultTable.draw();
+});
+
+$('#searchBar').on('search', function () {
+    resultTable.draw();
+});
+
+$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+    let searchterm = $('#searchBar').val();
+    let terms = searchterm.split(" ");
+    let columns = [];
+
+    if (searchterm == "") {
+        return true;
     }
+
+    for (let i = 0; i < 5; i++) {
+        columns.push(data[i + 1]);
+    }
+    
+    for (let i = 0; i < terms.length; i++) {
+        let found = false;
+        let term = terms[i];
+        for (let i = 0; i < 5; i++) {
+            if ((columns[i]).toLowerCase().includes(term.toLowerCase())){
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+        } else {
+            return false;
+        }
+    }
+    return true;
 });
 
-$('#genre').on('change', function() {
-    $('#genre').attr('style', 'color: #292b2c');
-    $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
-    $('#selectedWork').html("Select work from below:");
-    $('#spinner').removeClass('d-none');
-    listWorks(document.getElementById('genre').value);
-    // $('#worksCollapse').collapse();
-});
-
+// Sort
 $('#sort').on('change', function(){
     $('#sort').attr('style', '');
     resultTable.order([parseInt(document.getElementById('sort').value), document.getElementById('sortUpDown').value]).draw();
@@ -252,6 +260,48 @@ $('#sort').on('change', function(){
 $('#sortUpDown').on('change', function(){
     resultTable.order([parseInt(document.getElementById('sort').value), document.getElementById('sortUpDown').value]).draw();
 });
+
+// Error modal
+function showErrorModal(status) {
+    console.log(status);
+    const labels = {429: "429 Too Many Requests", 502: "502 Bad Gateway"};
+    const contents = {429: "Many people seem to be using this application. It should improve when you reload. Sorry for the inconvenience. <br />利用者数が多く, リクエスト数が制限に達してしまいました. 再読み込みすると改善します.", 502: "Server is down. It should improve when you reload. Sorry for the inconvenience. <br />サーバーがダウンしています. ページを再読み込みしてください."};
+    $('#errorModalLabel').html(toString(status));
+    $('#errorModalContent').html(contents[status]);
+    let myModal = new Modal(document.getElementById('errorModal'));
+    myModal.show();
+}
+
+// progress bar
+$(function() { 
+    $("#progressbar").addClass("dark-red-background");
+ });
+
+// work decide Logic ===================================================================================＝＝
+function getGenres(){
+    const url = `https://api.openopus.org/genre/list/composer/${queryComposerId}.json`
+    let request = new XMLHttpRequest();
+    // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+    request.open("POST", url, true);
+    request.send();
+
+    request.onreadystatechange = function () {
+        if (request.readyState==4 && this.status == 200) {
+            const data = JSON.parse(this.responseText);
+            let HTMLString = `<option value="Select genre" disabled selected>Select genre...</option>`;
+            data['genres'].forEach(genre => {
+                if (genre != "Popular" && genre != "Recommended"){
+                    HTMLString += `<option value="${genre}">${genre}</option>`;
+                }
+            });
+            document.getElementById('genre').innerHTML = HTMLString;
+            $('#genreContainer').removeClass('d-none');
+            $('#spinner').addClass('d-none');
+        } else if (request.readyState==4 && this.status != 200){
+            showErrorModal(this.status);
+        }
+    }
+}
 
 function listWorks(genre){
     const url = `https://api.openopus.org/work/list/composer/${queryComposerId}/${genre}.json`
@@ -281,31 +331,7 @@ function listWorks(genre){
     }
 }
 
-function getGenres(){
-    const url = `https://api.openopus.org/genre/list/composer/${queryComposerId}.json`
-    let request = new XMLHttpRequest();
-    // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-    request.open("POST", url, true);
-    request.send();
-
-    request.onreadystatechange = function () {
-        if (request.readyState==4 && this.status == 200) {
-            const data = JSON.parse(this.responseText);
-            let HTMLString = `<option value="Select genre" disabled selected>Select genre...</option>`;
-            data['genres'].forEach(genre => {
-                if (genre != "Popular" && genre != "Recommended"){
-                    HTMLString += `<option value="${genre}">${genre}</option>`;
-                }
-            });
-            document.getElementById('genre').innerHTML = HTMLString;
-            $('#genreContainer').removeClass('d-none');
-            $('#spinner').addClass('d-none');
-        } else if (request.readyState==4 && this.status != 200){
-            showErrorModal(this.status);
-        }
-    }
-}
-
+// Get results logic ========================================================================================
 function getResults(){
     // reset history
     idHistory = {};
@@ -323,11 +349,8 @@ function getResults(){
     console.log(queryPieceId);
     console.log(queryPieceName);
     resultTable.clear().draw();
-    // const queryComposerId = '186'; // Sibelius
-    // const queryComposerName = 'Sibelius'; 
-    // const queryComposerId = '186'; // Sibelius
-    // const queryPieceId = '22016'; // Sibelius 5
-    getAllSongCandidates().then(
+
+    getAlbums().then(
         function(value){
             console.log("Albums retrieved");
             // $('#progressbar').attr('style', 'width: 45%;');
@@ -373,15 +396,11 @@ function getResults(){
                 });
 
                 while(guesserAPIArray.length) {
-
                     funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
                     trackNumbers.push(albumTrackNumbers);
                     sendAlbums.push(album);
                 }
 
-                // funcs.push(guessWorks(JSON.stringify(guesserAPIArray), queryPieceId));
-                // trackNumbers.push(albumTrackNumbers);
-                // remember.push(guesserAPIArray);
             });
             totalGuesses = funcs.length;
             Promise.all(funcs).then((values) => {
@@ -607,131 +626,16 @@ function getResults(){
     );
 }
 
-function getRoles(rolesString){
-    return new Promise(function(resolve){
-        $('#progressText').html('Matching performers...');
-        if (rolesString == "-1"){
-            resolve("");
-        }
-
-        let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
-
-        let result = {};
-        $.ajax({
-            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`,
-            type: "GET",
-            // dataType: "json",
-            // contentType: "application/json",
-            // data: JSON.stringify({
-            //     works: guessAPIArray
-            // }),
-            // set the request header authorization to the bearer token that is generated
-            headers: {
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            success: function(retrievedResult) {
-                const data = retrievedResult;
-                if (data['performers']['readable'] == null) {
-                    resolve({});
-                } else {
-                    data['performers']['readable'].forEach(element => {
-                        if (element['role'] in result){
-                            result[element['role']].push(element['name']);
-                        } else {
-                            result[element['role']] = [element['name']];
-                        }
-                    });
-                    doneRoles++;
-                    $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
-                    $('#progressText').html('Matching performers...');
-                    resolve(result);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                //   console.log(`Error ${error}`)
-                showErrorModal(jqXHR.status);
-                resolve(result);
-            },
-        });
-
-        // let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
-        // const url = `https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`;
-        // let request = new XMLHttpRequest();
-        // let result = {};
-        // request.open("POST", url, true);
-        // request.send();
-        // request.onreadystatechange = function () {
-        //     if (request.readyState==4 && this.status == 200) {
-        //         const data = JSON.parse(this.responseText);
-        //         data['performers']['readable'].forEach(element => {
-        //             if (element['role'] in result){
-        //                 result[element['role']].push(element['name']);
-        //             } else {
-        //                 result[element['role']] = [element['name']];
-        //             }
-        //         });
-        //         doneRoles++;
-        //         $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
-        //         $('#progressText').html('Matching performers...');
-        //         resolve(result);
-        //     } else if (request.readyState==4 && this.status != 200){
-        //         showErrorModal(parseInt(this.tatus));
-        //     }
-        // }
-    });
-}
-
-function showErrorModal(status) {
-    console.log(status);
-    const labels = {429: "429 Too Many Requests", 502: "502 Bad Gateway"};
-    const contents = {429: "Many people seem to be using this application. It should improve when you reload. Sorry for the inconvenience. <br />利用者数が多く, リクエスト数が制限に達してしまいました. 再読み込みすると改善します.", 502: "Server is down. It should improve when you reload. Sorry for the inconvenience. <br />サーバーがダウンしています. ページを再読み込みしてください."};
-    $('#errorModalLabel').html(toString(status));
-    $('#errorModalContent').html(contents[status]);
-    let myModal = new Modal(document.getElementById('errorModal'));
-    myModal.show();
-}
-
-function guessWorks(guessAPIArray, queryPieceId){
-    $('#progressText').html('Identifying works...');
-    return new Promise(function(resolve){
-        $.ajax({
-            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
-            type: "GET",
-            headers: {
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            success: function(result) {
-                let found = -1;
-                const data = result;
-                if (data['works'] !== null){
-                    for (let i = 0; i < data['works'].length; i++){
-                        const element = data['works'][i];
-                        if (queryPieceId == element['guessed']['id']){
-                            found = JSON.stringify(element['requested']);
-                            break;
-                        }
-                    }
-                }
-                doneGuesses++;
-                $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
-                $('#progressText').html('Identifying works...');
-                resolve(found);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                //   console.log(`Error ${error}`)
-                showErrorModal(jqXHR.status);
-                resolve(result);
-            },
-          });
-    });
-}
-
-function getAllSongCandidates(offset){
+// Apple Music --------------------------------------------------------------------------------------------
+/**
+ * 再帰的にApple Musicが出せる全部のalbumを取得する
+ * @return {Array.<Object>} songsの入ったalbumsのArray
+ */
+function getAlbums() {
     return new Promise(function(resolve){
         let albums = [];
         // ループ処理（再帰的に呼び出し）
         function loop(i) {
-            // 非同期処理なのでPromiseを利用
             getSongCandidates(i).then(function(value) {
                 if (value[1]) {
                     albums = albums.concat(value[0]);
@@ -746,6 +650,11 @@ function getAllSongCandidates(offset){
     });
 }
 
+/**
+ * アルバムでApple Musicを検索し、songsが入ったalbumのarrayを返す
+ * @param {number} offset
+ * @return {Array.<Object>} songsが入ったalbumのarray
+ */
 function getSongCandidates(offset){
     return new Promise(function(resolve){
         console.log(offset);
@@ -797,14 +706,11 @@ function getSongCandidates(offset){
                             if (doneAlbums * 45 / totalAlbums > 70) {
                                 $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
                             }
-                            if (doneAlbums * 45 / totalAlbums > 100) {
-                                $('#progressText').html("Some works might not work so well yet. If you find any, please report.");
-                            }
                             if (doneAlbums * 45 / totalAlbums > 130) {
-                                $('#progressText').html("I'm sorry everything is in English. 日本語版も気が向いたら作ります。");
+                                $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
                             }
                             if (doneAlbums * 45 / totalAlbums > 160) {
-                                $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider contributing / donating...?");
+                                $('#progressText').html("Apple Developer Program is $99 = ￥13,000 per year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / donating...?");
                             }
                             resolve([values, cnt]);
                         }
@@ -818,10 +724,14 @@ function getSongCandidates(offset){
     });
 }
 
+/**
+ * アルバムの中の曲を全て取得し, album['songs']を追加して返す
+ * @param {Object} album
+ * @return {Object}
+ */
 function getSongsInAlbum(album){
     return new Promise(function(resolve){
         const albumId = album["id"];
-        // const url = 'https://api.music.apple.com/v1/catalog/us/songs/' + id + '/albums'
         const url = `https://api.music.apple.com/v1/catalog/jp/albums/${albumId}/tracks?l=en`
 
         var request = new XMLHttpRequest();
@@ -853,5 +763,91 @@ function getSongsInAlbum(album){
                 resolve(album);
             }
         }
+    });
+}
+
+
+// Open Opus ----------------------------------------------------------------------------
+function guessWorks(guessAPIArray, queryPieceId){
+    $('#progressText').html('Identifying works...');
+    return new Promise(function(resolve){
+        $.ajax({
+            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
+            type: "GET",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            success: function(result) {
+                let found = -1;
+                const data = result;
+                if (data['works'] !== null){
+                    for (let i = 0; i < data['works'].length; i++){
+                        const element = data['works'][i];
+                        if (queryPieceId == element['guessed']['id']){
+                            found = JSON.stringify(element['requested']);
+                            break;
+                        }
+                    }
+                }
+                doneGuesses++;
+                $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
+                $('#progressText').html('Identifying works...');
+                resolve(found);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                //   console.log(`Error ${error}`)
+                showErrorModal(jqXHR.status);
+                resolve(result);
+            },
+          });
+    });
+}
+
+function getRoles(rolesString){
+    return new Promise(function(resolve){
+        $('#progressText').html('Matching performers...');
+        if (rolesString == "-1"){
+            resolve("");
+        }
+
+        let rolesAPIString = JSON.stringify(rolesString.split(/ and | & |\/|, /));
+
+        let result = {};
+        $.ajax({
+            url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/performer/list?names=${rolesAPIString}`,
+            type: "GET",
+            // dataType: "json",
+            // contentType: "application/json",
+            // data: JSON.stringify({
+            //     works: guessAPIArray
+            // }),
+            // set the request header authorization to the bearer token that is generated
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            success: function(retrievedResult) {
+                const data = retrievedResult;
+                if (data['performers']['readable'] == null) {
+                    resolve({});
+                } else {
+                    data['performers']['readable'].forEach(element => {
+                        if (element['role'] in result){
+                            result[element['role']].push(element['name']);
+                        } else {
+                            result[element['role']] = [element['name']];
+                        }
+                    });
+                    doneRoles++;
+                    $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
+                    $('#progressText').html('Matching performers...');
+                    resolve(result);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                //   console.log(`Error ${error}`)
+                showErrorModal(jqXHR.status);
+                resolve(result);
+            },
+        });
     });
 }
