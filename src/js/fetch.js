@@ -23,6 +23,7 @@ let queryPieceName;
 let queryPieceId;
 let queryPieceRoles = [];
 let query = "";
+let queryCatalogNumber = "";
 
 // progress bar
 let totalAlbums;
@@ -128,6 +129,16 @@ $(document.body).on('click', '.worklink' ,function(e){
     $("#selectedWork").attr('style', 'background-color: #fff !important; text-decoration: none !important;');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
+
+    let last = queryPieceName.split(/[, ]+/).pop();
+    if (last.includes(".") && /[a-z0-9]/i.test(last)) {
+        queryCatalogNumber = last;
+        queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
+    } else if (/[A-Z]/i.test(last) && /[0-9]/i.test(last)) {
+        queryCatalogNumber = last;
+        queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
+    }
+
     let originalQueryPieceName = queryPieceName;
 
         // get rid of 'in E major'
@@ -334,7 +345,7 @@ function listWorks(genre){
 // Get results logic ========================================================================================
 function getResults(){
     // reset progress bar
-    totalAlbums = 200;
+    totalAlbums = 400;
     doneAlbums = 0;
     totalGuesses = 0;
     doneGuesses = 0;
@@ -659,30 +670,71 @@ function getAlbums() {
     return new Promise(function(resolve){
         let albums = [];
         // ループ処理（再帰的に呼び出し）
-        function loop(i) {
-            getSongCandidates(i).then(function(value) {
-                if (value[1]) {
-                    albums = albums.concat(value[0]);
-                    loop(i+25);
-                } else {
-                    resolve(albums);
-                }
-            });
+        if (queryCatalogNumber == ""){
+            function loop(i) {
+                getSongCandidates(i, true).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop(i+25);
+                    } else {
+                        resolve(albums);
+                    }
+                });
+            }
+            // 初回実行
+            loop(0);
+        } else {
+            let loop1done = false;
+            let loop2done = false;
+            function loop1(i) {
+                getSongCandidates(i, true).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop1(i+25);
+                    } else {
+                        loop1done = true;
+                        if (loop1done && loop2done){
+                            resolve(albums);
+                        }
+                    }
+                });
+            }
+            function loop2(i) {
+                getSongCandidates(i, false).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop2(i+25);
+                    } else {
+                        loop2done = true;
+                        if (loop1done && loop2done){
+                            resolve(albums);
+                        }
+                    }
+                });
+            }
+
+            // 初回実行
+            loop1(0);
+            loop2(0);
         }
-        // 初回実行
-        loop(0);
     });
 }
 
 /**
  * アルバムでApple Musicを検索し、songsが入ったalbumのarrayを返す
- * @param {number} offset
+ * @param {number} offset 
+ * @param {boolean} includeCatalog カタログ番号を含めるか
  * @return {Array.<Object>} songsが入ったalbumのarray
  */
-function getSongCandidates(offset){
+function getSongCandidates(offset, includeCatalog){
     return new Promise(function(resolve){
         console.log(offset);
-        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
+        let url = "";
+        if (includeCatalog) {
+            url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
+        } else {
+            url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}+${queryCatalogNumber}&types=albums,songs`
+        }
         // const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
 
         let request = new XMLHttpRequest();
@@ -756,17 +808,17 @@ function getSongCandidates(offset){
                         doneAlbums += 25;
                         $('#progressbar').html(Object.keys(idHistory).length);
                         $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
-                        if (doneAlbums * 45 / totalAlbums > 45) {
+                        if (doneAlbums > 200) {
                             $('#progressText').html('So many albums! Looking for more...');
                         }
-                        if (doneAlbums * 45 / totalAlbums > 70) {
+                        if (doneAlbums > 350) {
                             $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
                         }
-                        if (doneAlbums * 45 / totalAlbums > 130) {
+                        if (doneAlbums > 600) {
                             $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
                         }
-                        if (doneAlbums * 45 / totalAlbums > 160) {
-                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee☕️</a>...?");
+                        if (doneAlbums > 800) {
+                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee</a>☕️...?");
                         }
                         resolve([values, cnt]);
                     }
@@ -847,7 +899,7 @@ function guessWorks(guessAPIArray, queryPieceId){
                     }
                 }
                 doneGuesses++;
-                console.log(doneGuesses, totalGuesses);
+                // console.log(doneGuesses, totalGuesses);
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 $('#progressbar').html(`${Math.round(Math.min(doneGuesses / totalGuesses * 40 + 45, 85))}%`);
                 $('#progressText').html('Identifying works...');
