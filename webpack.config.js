@@ -12,7 +12,13 @@ module.exports = {
     hot: true,
     allowedHosts: "all"
   },
+  resolve: {
+    fallback: {
+        "fs": false
+    }
+  },
   module: {
+    externals: nodeModules,
     rules: [
       {
         test: /\.(scss)$/,
