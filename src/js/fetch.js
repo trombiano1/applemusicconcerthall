@@ -1,7 +1,8 @@
 "use strict";
 import { Modal } from 'bootstrap'
 import pLimit from 'p-limit';
-
+const fs = require('fs');
+  
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
 
 var $ = require('jquery');
@@ -21,8 +22,9 @@ let queryComposerName;
 let queryComposerId;
 let queryPieceName;
 let queryPieceId;
-let queryPieceRoles = [];
 let query = "";
+let queryCatalogNumber = "";
+let queryPieceRoles = [];
 
 // progress bar
 let totalAlbums;
@@ -90,6 +92,10 @@ $('#composer').on('input', () => {
     $('#ids').addClass('d-none');
     $('#customQuery').addClass('d-none');
 
+
+    //fs.readFileSync(ファイルのパス, 文字コード, コールバック関数)
+    // 書き込むデータ準備
+
     var val = document.getElementById("composer").value;
     var opts = document.getElementById('composersdatalist').childNodes;
     for (var i = 0; i < opts.length; i++) {
@@ -128,9 +134,19 @@ $(document.body).on('click', '.worklink' ,function(e){
     $("#selectedWork").attr('style', 'background-color: #fff !important; text-decoration: none !important;');
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
+
+    let last = queryPieceName.split(/[, ]+/).pop();
+    if (last.includes(".") && /[a-z0-9]/i.test(last)) {
+        queryCatalogNumber = last;
+        queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
+    } else if (/[A-Z]/i.test(last) && /[0-9]/i.test(last)) {
+        queryCatalogNumber = last;
+        queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
+    }
+
     let originalQueryPieceName = queryPieceName;
 
-        // get rid of 'in E major'
+    // get rid of 'in E major'
     if (queryPieceName.includes(' in ') && queryPieceName.includes(' major')){
         queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' major').pop();
     }
@@ -176,11 +192,8 @@ $('#searchQueryCustom').on('click', function () {
 $('#searchButton').on('click', () => {
     // show table container and progress
     $('#tableContainer').removeClass('d-none');
-    $('#progressContainer').removeClass('d-none');
+    $('#spinner2').removeClass('d-none');
     $('#tableWrapper').addClass('d-none');
-    
-    $('#progressbar').attr('style', 'width: 2%;');
-    $('#progressText').html('Looking for all albums...');
 
     // disable buttons until finish
     $("#composer").attr('disabled', true);
@@ -334,7 +347,7 @@ function listWorks(genre){
 // Get results logic ========================================================================================
 function getResults(){
     // reset progress bar
-    totalAlbums = 200;
+    totalAlbums = 400;
     doneAlbums = 0;
     totalGuesses = 0;
     doneGuesses = 0;
@@ -345,309 +358,402 @@ function getResults(){
     console.log(queryComposerId);
     console.log(queryComposerName);
     console.log(queryPieceId);
-    console.log(queryPieceName);
     resultTable.clear().draw();
 
-    getAlbums().then(
-        function(value){
-            console.log(value.length);
-            console.log("Albums retrieved");
-            let albums = value;
-            let funcs = [];
-            let trackNumbers = [];
-            let remember = [];
-            let sendAlbums = [];
-            // for each album
-            albums.forEach(album => {
-                let guesserAPIArray = [];
-                let pieceNameHistory = {};
-                let albumTrackNumbers = {};
-                // for each song
-                album['songs'].forEach(song => {
-                    const composerName = song['composerName'];
-                    const tracknumber = song['trackNumber'];
+    // try history !
+    const url = `https://sleepy-shelf-95701.herokuapp.com/get?composerId=${queryComposerId}&pieceId=${queryPieceId}&query=${query}&catalogNumber=${queryCatalogNumber}`
+    // const url = `http://localhost:3000/get?composerId=${queryComposerId}&pieceId=${queryPieceId}&query=${query}&catalogNumber=${queryCatalogNumber}`
+    let request = new XMLHttpRequest();
+    // request.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+    request.open("GET", url, true);
+    request.send();
 
-                    let pieceName = song['name'].split(":")[0];
+    request.onreadystatechange = function () {
+        if (request.readyState==4 && this.status == 200) {
+            const data = JSON.parse(this.responseText);
+            if (data.length === 0){
+                $('#spinner2').addClass('d-none');
+                $('#progressContainer').removeClass('d-none');
+                $('#progressbar').attr('style', 'width: 2%;');
+                $('#progressText').html("This is a new work for me! <br />Let me create the database.");
+                getAlbums().then(
+                    function(value){
+                        console.log(value.length);
+                        console.log("Albums retrieved");
+                        let albums = value;
+                        let funcs = [];
+                        let trackNumbers = [];
+                        let remember = [];
+                        let sendAlbums = [];
+                        // for each album
+                        albums.forEach(album => {
+                            let guesserAPIArray = [];
+                            let pieceNameHistory = {};
+                            let albumTrackNumbers = {};
+                            // for each song
+                            album['songs'].forEach(song => {
+                                const composerName = song['composerName'];
+                                const tracknumber = song['trackNumber'];
 
-                    // name shenanigans
-                    pieceName = pieceName.replace("No ", "No. ");
-                    
-                    let newString;
-                    // create guesserAPIArray for the album
-                    if (typeof composerName === "undefined" ){
-                        // composerNameが定義されていないCD
-                        // アルバムタイトルにcomposerNameが入っていないか確認
-                        if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
-                            newString = JSON.stringify({'composer': queryComposerName, 'title': pieceName});
-                            guesserAPIArray.push({'composer': queryComposerName, 'title': pieceName});// .split(", FP")[0]});
-                            albumTrackNumbers[newString] = tracknumber;
-                            pieceNameHistory[pieceName] = true;
-                        }
-                    } else {
-                        if (typeof pieceNameHistory[pieceName] === "undefined"){
-                            newString = JSON.stringify({'composer': composerName, 'title': pieceName});
-                            guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
-                            albumTrackNumbers[newString] = tracknumber;
-                            pieceNameHistory[pieceName] = true;
-                        }
-                    }
-                });
+                                let pieceName = song['name'].split(":")[0];
 
-                while(guesserAPIArray.length) {
-                    // funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
-                    funcs.push([guesserAPIArray.splice(0,5), queryPieceId]);
-                    trackNumbers.push(albumTrackNumbers);
-                    sendAlbums.push(album);
-                }
+                                // name shenanigans
+                                pieceName = pieceName.replace("No ", "No. ");
+                                
+                                let newString;
+                                // create guesserAPIArray for the album
+                                if (typeof composerName === "undefined" ){
+                                    // composerNameが定義されていないCD
+                                    // アルバムタイトルにcomposerNameが入っていないか確認
+                                    if (album["name"].toLowerCase().includes(queryComposerName.toLowerCase())){
+                                        newString = JSON.stringify({'composer': queryComposerName, 'title': pieceName});
+                                        guesserAPIArray.push({'composer': queryComposerName, 'title': pieceName});// .split(", FP")[0]});
+                                        albumTrackNumbers[newString] = tracknumber;
+                                        pieceNameHistory[pieceName] = true;
+                                    }
+                                } else {
+                                    if (typeof pieceNameHistory[pieceName] === "undefined"){
+                                        newString = JSON.stringify({'composer': composerName, 'title': pieceName});
+                                        guesserAPIArray.push({'composer': composerName, 'title': pieceName});// .split(", FP")[0]});
+                                        albumTrackNumbers[newString] = tracknumber;
+                                        pieceNameHistory[pieceName] = true;
+                                    }
+                                }
+                            });
 
-            });
+                            while(guesserAPIArray.length) {
+                                // funcs.push(guessWorks(guesserAPIArray.splice(0,5), queryPieceId));
+                                funcs.push([guesserAPIArray.splice(0,5), queryPieceId]);
+                                trackNumbers.push(albumTrackNumbers);
+                                sendAlbums.push(album);
+                            }
 
-            const limit = pLimit(1000);
+                        });
 
-            // Create an array of our promises using map (fetchData() returns a promise)
-            let promises = funcs.map(func => {
-            
-                // wrap the function we are calling in the limit function we defined above
-                // return limit(() => fetchData(url));
-                return limit(() => guessWorks(func[0], func[1]));
-            });
+                        const limit = pLimit(1000);
 
-            totalGuesses = funcs.length;
+                        // Create an array of our promises using map (fetchData() returns a promise)
+                        let promises = funcs.map(func => {
+                        
+                            // wrap the function we are calling in the limit function we defined above
+                            // return limit(() => fetchData(url));
+                            return limit(() => guessWorks(func[0], func[1]));
+                        });
 
-            (async () => {
-                // Only three promises are run at once (as defined above)
-                const values = await Promise.all(promises);
-                // console.log(result);
+                        totalGuesses = funcs.length;
 
-            // Promise.all(funcs).then((values) => {
-                console.log("Guesses retrieved");
-                resultTable.row().remove();
+                        (async () => {
+                            // Only three promises are run at once (as defined above)
+                            const values = await Promise.all(promises);
+                            // console.log(result);
 
-                let getRolesFuncs = [];
-                let validAlbums = [];
+                        // Promise.all(funcs).then((values) => {
+                            console.log("Guesses retrieved");
+                            resultTable.row().remove();
 
-                for (let i = 0; i < sendAlbums.length; i++){
-                    if (values[i] != -1){
-                        if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
-                            getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
-                            validAlbums.push(sendAlbums[i]);
-                        } else {
-                            getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
-                            validAlbums.push(sendAlbums[i]);
-                        }
-                    } else {
-                        // if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
-                            // getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
-                            // validAlbums.push(sendAlbums[i]);
-                        // }
-                    }
-                }
+                            let getRolesFuncs = [];
+                            let validAlbums = [];
 
-                totalRoles = getRolesFuncs.length;
+                            for (let i = 0; i < sendAlbums.length; i++){
+                                if (values[i] != -1){
+                                    if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
+                                        getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][trackNumbers[i][values[i]] - 1]['artistName']));
+                                        validAlbums.push(sendAlbums[i]);
+                                    } else {
+                                        getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
+                                        validAlbums.push(sendAlbums[i]);
+                                    }
+                                } else {
+                                    // if (sendAlbums[i]['songs'].length > trackNumbers[i][values[i]] - 1) {
+                                        // getRolesFuncs.push(getRoles(sendAlbums[i]['songs'][0]['artistName']));
+                                        // validAlbums.push(sendAlbums[i]);
+                                    // }
+                                }
+                            }
 
-                let count = 0;
-                Promise.all(getRolesFuncs).then((retrievedRoles) => {
-                    // console.log(retrievedRoles.length);
-                    const counts = {};
-                    console.log("Roles retrieved");
-                    retrievedRoles.forEach(roles => {
-                        counts[Object.keys(roles).sort()] = (counts[Object.keys(roles).sort()] || 0) + 1;
-                    });
-                    let maximum = -1;
+                            totalRoles = getRolesFuncs.length;
 
-                    for (const [key, value] of Object.entries(counts)) {
-                        if (value > maximum){
-                            queryPieceRoles = key.split(',').filter(Boolean);
-                            maximum = value;
-                        }
-                    }
+                            let count = 0;
+                            Promise.all(getRolesFuncs).then((retrievedRoles) => {
+                                // console.log(retrievedRoles.length);
+                                const counts = {};
+                                console.log("Roles retrieved");
+                                retrievedRoles.forEach(roles => {
+                                    counts[Object.keys(roles).sort()] = (counts[Object.keys(roles).sort()] || 0) + 1;
+                                });
+                                let maximum = -1;
 
-                    // show or hide Year
-                    if (window.innerWidth < 600) {
-                        // resultTable.column(1).visible(false);
-                    } else {
-                        // resultTable.column(1).visible(true);
-                    }
+                                for (const [key, value] of Object.entries(counts)) {
+                                    if (value > maximum){
+                                        queryPieceRoles = key.split(',').filter(Boolean);
+                                        maximum = value;
+                                    }
+                                }
 
-                    // set sorting options
-                    let sortString = `<option value="Select sort" disabled selected>Select sort...</option>\
-                                      <option value="6">Year</option>`;
-                    for (let i = 0; i < 4; i++) {
-                        if (i < queryPieceRoles.length){
-                                sortString += `<option value="${i + 7}">${queryPieceRoles[i]}</option>`;
+                                setupTable();
+
+                                let addLists = [];
+                                let addListsMobile = [];
+                                let sortLists = [];
+
+                                for (let i = 0; i < validAlbums.length; i++){
+                                    let assignedRoles = {};
+                                    let validCount = 0;
+                                    let invalidList = [];
+                                    let invalidClear = true;
+
+                                    // if retrieved role is in piece roles
+                                    for (let j = 0; j < queryPieceRoles.length; j++) {
+                                        if (queryPieceRoles[j] in retrievedRoles[i]){
+                                            assignedRoles[queryPieceRoles[j]] = retrievedRoles[i][queryPieceRoles[j]];
+                                            validCount++;
                                         }
-                    }
-                    document.getElementById('sort').innerHTML = sortString;
-                    $('#sort').attr('style', 'color: #999');
+                                    }
+                                    
+                                    // if weird role is retrieved
+                                    for (const [key, value] of Object.entries(retrievedRoles[i])) {
+                                        if (key == "") {
+                                            invalidList = invalidList.concat(value);
+                                            invalidClear = false;
+                                        } else if (!queryPieceRoles.includes(key)) {
+                                            invalidList = invalidList.concat(value);
+                                            invalidClear = false;
+                                        }
+                                    }
 
-                    // set header and hide columns
+                                    // if one is missing and one is invalid, assume that is the one
+                                    if (validCount == queryPieceRoles.length - 1 && invalidList.length == 1 && invalidList[0] !== undefined){
+                                        for (let j = 0; j < queryPieceRoles.length; j++) {
+                                            if (!(queryPieceRoles[j] in assignedRoles)){
+                                                assignedRoles[queryPieceRoles[j]] = invalidList;
+                                                invalidClear = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    let addList = [];
+                                    let addListMobile = [];
+                                    let sortList = [];
+                                    sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
+                                    for (let j = 0; j < queryPieceRoles.length; j++){
+                                        if (queryPieceRoles[j] in assignedRoles) {
+                                            let addListStr = `<div class='ic mb-2'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`;
+
+                                            let addListStrMobile = `<div class='ic mb-2'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`;
+
+                                            if (!invalidClear) {
+                                                let othersStr = "";
+                                                for (let i = 0; i < invalidList.length; i++) {
+                                                    othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
+                                                }
+                                                addListStrMobile += othersStr;
+                                                othersStr = '<p class="mt-3 fw-bold">Others</p>';
+                                                for (let i = 0; i < invalidList.length; i++) {
+                                                    othersStr += `<p class='ms-1 mb-2'>&nbsp;${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
+                                                }
+                                                addListStr += othersStr;
+                                                invalidClear = true;
+                                            }
+                                            addList.push(addListStr);
+                                            addListMobile.push(addListStrMobile);
+                                            sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
+                                        } else {
+                                            let addListStr = "";
+                                            let addListStrMobile = "";
+                                            if (!invalidClear) {
+                                                let othersStr = "";
+                                                for (let i = 0; i < invalidList.length; i++) {
+                                                    othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
+                                                }
+                                                addListStrMobile += othersStr;
+
+                                                othersStr = "<p class='mt-3 fw-bold'>Others</p>";
+                                                for (let i = 0; i < invalidList.length; i++) {
+                                                    othersStr += `<p class='ms-1 mb-2'>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
+                                                }
+                                                addListStr += othersStr;
+                                                invalidClear = true;
+                                            }
+                                            addList.push(addListStr);
+                                            addListMobile.push(addListStrMobile);
+                                            sortList.push("zzzzzzzzz"); // sort last
+                                        }
+                                    }
+                                    for (let j = queryPieceRoles.length; j < 4; j++){
+                                        addList.push("");
+                                        addListMobile.push("");
+                                        sortList.push("");
+                                    }
+
+                                    addLists.push(addList);
+                                    addListsMobile.push(addListMobile);
+                                    sortLists.push(sortList);
+
+                                    if (window.innerWidth < 600) {
+                                        // mobile
+                                        let addString = `<p class='text-secondary mb-2'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                                        addListMobile.forEach(element => {
+                                            if (element != ""){
+                                                // addString += "<p>";
+                                                addString += element;
+                                                // addString += "</p>";
+                                            }
+                                        });
+                                        resultTable.row.add([
+                                            `<a href='${validAlbums[i]['url']}' target="_blank">
+                                            <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
+                                            addString,
+                                            '',
+                                            '',
+                                            '',
+                                            '',
+                                        ].concat(sortList)).draw(false);
+                                    } else {
+                                        // others
+                                        resultTable.row.add([
+                                            `<a href='${validAlbums[i]['url']}' target="_blank">
+                                            <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
+                                            validAlbums[i]['releaseDate'].split('-')[0]
+                                        ].concat(addList).concat(sortList)).draw(false);
+                                    }
+                                }
+                                // save data
+                                let saveresult = {
+                                    addLists: addLists,
+                                    addListsMobile: addListsMobile,
+                                    sortLists: sortLists,
+                                    validAlbums: validAlbums,
+                                    queryPieceRoles: queryPieceRoles
+                                };
+                                // const url = `http://localhost:3000/save?composerId=${queryComposerId}&pieceId=${queryPieceId}&query=${query}&catalogNumber=${queryCatalogNumber}`;
+                                const url = `https://sleepy-shelf-95701.herokuapp.com/save?composerId=${queryComposerId}&pieceId=${queryPieceId}&query=${query}&catalogNumber=${queryCatalogNumber}`;
+                                let saveRequest = new XMLHttpRequest();
+                                saveRequest.open("POST", url, true);
+                                saveRequest.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                                // saveRequest.send(`result=short`);
+                                saveRequest.send(`result=${encodeURIComponent(JSON.stringify(saveresult))}`);
+
+                                saveRequest.onreadystatechange = function () {
+                                    if (request.readyState==4 && this.status == 200) {
+                                        console.log("save success");
+                                    } else {
+                                        console.log(this.status);
+                                    }
+                                }
+                            });
+                        // });
+                        })();
+                    }
+                );
+            } else {
+                let oldresult = JSON.parse(decodeURIComponent(data[0]['result']));
+                let addLists = oldresult['addLists'];
+                let addListsMobile = oldresult['addListsMobile'];
+                let sortLists = oldresult['sortLists'];
+                let validAlbums = oldresult['validAlbums'];
+                queryPieceRoles = oldresult['queryPieceRoles'];
+
+                $('#spinner2').addClass('d-none');
+                setupTable();
+
+                for (let i = 0; i < addLists.length; i++) {
+                    let addList = addLists[i];
+                    let addListMobile = addListsMobile[i];
+                    let sortList = sortLists[i];
                     if (window.innerWidth < 600) {
-                        //mobile
-                        $(resultTable.column(1).header()).text("Performers");
-                        resultTable.column(2).visible(false);
-                        resultTable.column(3).visible(false);
-                        resultTable.column(4).visible(false);
-                        resultTable.column(5).visible(false);
+                        // mobile
+                        let addString = `<p class='text-secondary mb-2'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
+                        addListMobile.forEach(element => {
+                            if (element != ""){
+                                // addString += "<p>";
+                                addString += element;
+                                // addString += "</p>";
+                            }
+                        });
+                        resultTable.row.add([
+                            `<a href='${validAlbums[i]['url']}' target="_blank">
+                            <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
+                            addString,
+                            '',
+                            '',
+                            '',
+                            '',
+                        ].concat(sortList)).draw(false);
                     } else {
                         // others
-                        $(resultTable.column(1).header()).text("Year");
-                        for (let i = 0; i < 4; i++) {
-                            if (i < queryPieceRoles.length){
-                                $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
-                                resultTable.column(i+2).visible(true);
-                            } else {
-                                resultTable.column(i+2).visible(false);
-                            }
-                        }
+                        resultTable.row.add([
+                            `<a href='${validAlbums[i]['url']}' target="_blank">
+                            <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
+                            validAlbums[i]['releaseDate'].split('-')[0]
+                        ].concat(addList).concat(sortList)).draw(false);
                     }
-                    for (let i = 6; i < 11; i++) {
-                        resultTable.column(i).visible(false);
-                    }
-
-                    // reenable search
-                    // disable buttons until finish
-                    $("#composer").attr('disabled', false);
-                    $("#genre").attr('disabled', false);
-                    $("#selectedWork").attr('data-bs-toggle', 'collapse');
-                    $("#selectedWork").attr('style', 'text-decoration: none !important;');
-                    $("#searchQueryCustom").attr('disabled', false);
-
-                    // show table
-                    $('#progressContainer').addClass('d-none');
-                    $('#tableWrapper').removeClass('d-none');
-                    $('#searchBar').val('');
-
-                    // scroll
-                    $([document.documentElement, document.body]).animate({
-                        scrollTop: $("#tableContainer").offset().top
-                    }, 250);
-                    
-                    for (let i = 0; i < validAlbums.length; i++){
-                        let assignedRoles = {};
-                        let validCount = 0;
-                        let invalidList = [];
-                        let invalidClear = true;
-
-                        // if retrieved role is in piece roles
-                        for (let j = 0; j < queryPieceRoles.length; j++) {
-                            if (queryPieceRoles[j] in retrievedRoles[i]){
-                                assignedRoles[queryPieceRoles[j]] = retrievedRoles[i][queryPieceRoles[j]];
-                                validCount++;
-                            }
-                        }
-                        
-                        // if weird role is retrieved
-                        for (const [key, value] of Object.entries(retrievedRoles[i])) {
-                            if (key == "") {
-                                invalidList = invalidList.concat(value);
-                                invalidClear = false;
-                            } else if (!queryPieceRoles.includes(key)) {
-                                invalidList = invalidList.concat(value);
-                                invalidClear = false;
-                            }
-                        }
-
-                        // if one is missing and one is invalid, assume that is the one
-                        if (validCount == queryPieceRoles.length - 1 && invalidList.length == 1 && invalidList[0] !== undefined){
-                            for (let j = 0; j < queryPieceRoles.length; j++) {
-                                if (!(queryPieceRoles[j] in assignedRoles)){
-                                    assignedRoles[queryPieceRoles[j]] = invalidList;
-                                    invalidClear = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        let addList = [];
-                        let sortList = [];
-                        sortList.push(validAlbums[i]['releaseDate'].split('-')[0]);
-                        for (let j = 0; j < queryPieceRoles.length; j++){
-                            if (queryPieceRoles[j] in assignedRoles) {
-                                let addListStr = `<div class='ic mb-2'><i class='icon ${queryPieceRoles[j]}Icon'></i><div style="widows: 2;">${assignedRoles[queryPieceRoles[j]][0]}<a class='filter' value='${assignedRoles[queryPieceRoles[j]][0]}'></a></div></div>`
-                                if (!invalidClear) {
-                                    if (window.innerWidth < 600) {
-                                        let othersStr = "";
-                                        for (let i = 0; i < invalidList.length; i++) {
-                                            othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
-                                        }
-                                        addListStr += othersStr;
-                                        invalidClear = true;
-                                    } else {
-                                        let othersStr = '<p class="mt-3 fw-bold">Others</p>';
-                                        for (let i = 0; i < invalidList.length; i++) {
-                                            othersStr += `<p class='ms-1 mb-2'>&nbsp;${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
-                                        }
-                                        addListStr += othersStr;
-                                        invalidClear = true;
-                                    }
-                                }
-                                addList.push(addListStr);
-                                sortList.push(assignedRoles[queryPieceRoles[j]][0].toLowerCase());
-                            } else {
-                                let addListStr = "";
-                                if (!invalidClear) {
-                                    if (window.innerWidth < 600) {
-                                        let othersStr = "";
-                                        for (let i = 0; i < invalidList.length; i++) {
-                                            othersStr += `<div>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></div>`;
-                                        }
-                                        addListStr += othersStr;
-                                        invalidClear = true;
-                                    } else {
-                                        let othersStr = "<p class='mt-3 fw-bold'>Others</p>";
-                                        for (let i = 0; i < invalidList.length; i++) {
-                                            othersStr += `<p class='ms-1 mb-2'>${invalidList[i]}<a class='filter' value='${invalidList[i]}'></a></p>`;
-                                        }
-                                        addListStr += othersStr;
-                                        invalidClear = true;
-                                    }
-                                }
-                                addList.push(addListStr);
-                                sortList.push("zzzzzzzzz"); // sort last
-                            }
-                        }
-                        for (let j = queryPieceRoles.length; j < 4; j++){
-                            addList.push("");
-                            sortList.push("");
-                        }
-                        // if (addList.length == 4){ // assert
-                            // if (!(validAlbums[i]['id'] in idHistory)){ // remove duplicates
-                                if (window.innerWidth < 600) {
-                                    // mobile
-                                    let addString = `<p class='text-secondary mb-2'><small>${validAlbums[i]['releaseDate'].split('-')[0]}</small></p>`;
-                                    addList.forEach(element => {
-                                        if (element != ""){
-                                            // addString += "<p>";
-                                            addString += element;
-                                            // addString += "</p>";
-                                        }
-                                    });
-                                    resultTable.row.add([
-                                        `<a href='${validAlbums[i]['url']}' target="_blank">
-                                        <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
-                                        addString,
-                                        '',
-                                        '',
-                                        '',
-                                        '',
-                                    ].concat(sortList)).draw(false);
-                                } else {
-                                    // others
-                                    resultTable.row.add([
-                                        `<a href='${validAlbums[i]['url']}' target="_blank">
-                                        <div class='arts'><img class='shadow albumart' src=${validAlbums[i]['artworkUrl'].replace('{w}x{h}', '300x300')}/><img class='cd' src='images/cd.jpg'/></div></a>`,
-                                        validAlbums[i]['releaseDate'].split('-')[0]
-                                    ].concat(addList).concat(sortList)).draw(false);
-                                }
-                                // idHistory[validAlbums[i]['id']] = 1;
-                            // }
-                        }
-                    // }
-                });
-            // });
-            })();
+                }
+            }
         }
-    );
+    }
+}
+
+function setupTable(){
+    // show or hide Year
+    if (window.innerWidth < 600) {
+        // resultTable.column(1).visible(false);
+    } else {
+        // resultTable.column(1).visible(true);
+    }
+
+    // set sorting options
+    let sortString = `<option value="Select sort" disabled selected>Select sort...</option>\
+                    <option value="6">Year</option>`;
+    for (let i = 0; i < 4; i++) {
+        if (i < queryPieceRoles.length){
+                sortString += `<option value="${i + 7}">${queryPieceRoles[i]}</option>`;
+                        }
+    }
+    document.getElementById('sort').innerHTML = sortString;
+    $('#sort').attr('style', 'color: #999');
+
+    // set header and hide columns
+    if (window.innerWidth < 600) {
+        //mobile
+        $(resultTable.column(1).header()).text("Performers");
+        resultTable.column(2).visible(false);
+        resultTable.column(3).visible(false);
+        resultTable.column(4).visible(false);
+        resultTable.column(5).visible(false);
+    } else {
+        // others
+        $(resultTable.column(1).header()).text("Year");
+        for (let i = 0; i < 4; i++) {
+            if (i < queryPieceRoles.length){
+                $(resultTable.column(i+2).header()).text(queryPieceRoles[i]);
+                resultTable.column(i+2).visible(true);
+            } else {
+                resultTable.column(i+2).visible(false);
+            }
+        }
+    }
+    for (let i = 6; i < 11; i++) {
+        resultTable.column(i).visible(false);
+    }
+
+    // reenable search
+    $("#composer").attr('disabled', false);
+    $("#genre").attr('disabled', false);
+    $("#selectedWork").attr('data-bs-toggle', 'collapse');
+    $("#selectedWork").attr('style', 'text-decoration: none !important;');
+    $("#searchQueryCustom").attr('disabled', false);
+
+    // show table
+    $('#progressContainer').addClass('d-none');
+    $('#tableWrapper').removeClass('d-none');
+    $('#searchBar').val('');
+
+    // scroll
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $("#tableContainer").offset().top
+    }, 250);
+    
 }
 
 // Apple Music --------------------------------------------------------------------------------------------
@@ -659,30 +765,71 @@ function getAlbums() {
     return new Promise(function(resolve){
         let albums = [];
         // ループ処理（再帰的に呼び出し）
-        function loop(i) {
-            getSongCandidates(i).then(function(value) {
-                if (value[1]) {
-                    albums = albums.concat(value[0]);
-                    loop(i+25);
-                } else {
-                    resolve(albums);
-                }
-            });
+        if (queryCatalogNumber == ""){
+            function loop(i) {
+                getSongCandidates(i, true).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop(i+25);
+                    } else {
+                        resolve(albums);
+                    }
+                });
+            }
+            // 初回実行
+            loop(0);
+        } else {
+            let loop1done = false;
+            let loop2done = false;
+            function loop1(i) {
+                getSongCandidates(i, true).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop1(i+25);
+                    } else {
+                        loop1done = true;
+                        if (loop1done && loop2done){
+                            resolve(albums);
+                        }
+                    }
+                });
+            }
+            function loop2(i) {
+                getSongCandidates(i, false).then(function(value) {
+                    if (value[1]) {
+                        albums = albums.concat(value[0]);
+                        loop2(i+25);
+                    } else {
+                        loop2done = true;
+                        if (loop1done && loop2done){
+                            resolve(albums);
+                        }
+                    }
+                });
+            }
+
+            // 初回実行
+            loop1(0);
+            loop2(0);
         }
-        // 初回実行
-        loop(0);
     });
 }
 
 /**
  * アルバムでApple Musicを検索し、songsが入ったalbumのarrayを返す
- * @param {number} offset
+ * @param {number} offset 
+ * @param {boolean} includeCatalog カタログ番号を含めるか
  * @return {Array.<Object>} songsが入ったalbumのarray
  */
-function getSongCandidates(offset){
+function getSongCandidates(offset, includeCatalog){
     return new Promise(function(resolve){
         console.log(offset);
-        const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
+        let url = "";
+        if (includeCatalog) {
+            url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
+        } else {
+            url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}+${queryCatalogNumber}&types=albums,songs`
+        }
         // const url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
 
         let request = new XMLHttpRequest();
@@ -756,17 +903,14 @@ function getSongCandidates(offset){
                         doneAlbums += 25;
                         $('#progressbar').html(Object.keys(idHistory).length);
                         $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
-                        if (doneAlbums * 45 / totalAlbums > 45) {
-                            $('#progressText').html('So many albums! Looking for more...');
+                        if (doneAlbums > 200) {
+                            $('#progressText').html('Looking for more albums...');
                         }
-                        if (doneAlbums * 45 / totalAlbums > 70) {
-                            $('#progressText').html("I'm sorry it's so slow. It will get faster... coming soon!");
-                        }
-                        if (doneAlbums * 45 / totalAlbums > 130) {
+                        if (doneAlbums > 400) {
                             $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
                         }
-                        if (doneAlbums * 45 / totalAlbums > 160) {
-                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me coffee☕️</a>...?");
+                        if (doneAlbums > 600) {
+                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me a coffee</a>☕️...?");
                         }
                         resolve([values, cnt]);
                     }
@@ -826,7 +970,6 @@ function getSongsInAlbum(album){
 // Open Opus ----------------------------------------------------------------------------
 function guessWorks(guessAPIArray, queryPieceId){
     $('#progressText').html('Identifying works...');
-    // $('#progressbar').html(`45%`);
     return new Promise(function(resolve){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
@@ -847,7 +990,7 @@ function guessWorks(guessAPIArray, queryPieceId){
                     }
                 }
                 doneGuesses++;
-                console.log(doneGuesses, totalGuesses);
+                // console.log(doneGuesses, totalGuesses);
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 $('#progressbar').html(`${Math.round(Math.min(doneGuesses / totalGuesses * 40 + 45, 85))}%`);
                 $('#progressText').html('Identifying works...');
