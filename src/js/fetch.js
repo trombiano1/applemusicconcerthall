@@ -135,6 +135,8 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
 
+    let originalQueryPieceName = queryPieceName;
+
     let last = queryPieceName.split(/[, ]+/).pop();
     if (last.includes(".") && /[a-z0-9]/i.test(last)) {
         queryCatalogNumber = last;
@@ -144,15 +146,7 @@ $(document.body).on('click', '.worklink' ,function(e){
         queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
     }
 
-    let originalQueryPieceName = queryPieceName;
-
     // get rid of 'in E major'
-    if (queryPieceName.includes(' in ') && queryPieceName.includes(' major')){
-        queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' major').pop();
-    }
-    if (queryPieceName.includes(' in ') && queryPieceName.includes(' minor')){
-        queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' minor').pop();
-    }
     if (queryPieceName.includes(' in ')){
         queryPieceName = queryPieceName.split(" in ")[0];
     }
