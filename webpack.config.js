@@ -18,7 +18,6 @@ module.exports = {
     }
   },
   module: {
-    externals: nodeModules,
     rules: [
       {
         test: /\.(scss)$/,
