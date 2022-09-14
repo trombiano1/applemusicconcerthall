@@ -91,7 +91,7 @@ $('#composer').on('input', () => {
     $('#composerDescription').removeClass('d-none');
     $('#ids').addClass('d-none');
     $('#customQuery').addClass('d-none');
-
+    queryCatalogNumber = "";
 
     //fs.readFileSync(ファイルのパス, 文字コード, コールバック関数)
     // 書き込むデータ準備
@@ -823,7 +823,7 @@ function getAlbums() {
  */
 function getSongCandidates(offset, includeCatalog){
     return new Promise(function(resolve){
-        console.log(offset);
+        // console.log(offset);
         let url = "";
         if (includeCatalog) {
             url = `https://api.music.apple.com/v1/catalog/jp/search?l=en&offset=${offset}&limit=25&term=${query.replaceAll(' ', '+')}&types=albums,songs`
