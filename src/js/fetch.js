@@ -157,6 +157,9 @@ $(document.body).on('click', '.worklink' ,function(e){
     // get rid of 'op. 42'
     queryPieceName = queryPieceName.split(" op.")[0];
 
+    // get rid of things after colon
+    queryPieceName = queryPieceName.split(":")[0];
+
     // get rid of comma
     queryPieceName = queryPieceName.replaceAll(",", " ");
 
