@@ -3,7 +3,7 @@ import { Modal } from 'bootstrap'
 import pLimit from 'p-limit';
 const fs = require('fs');
   
-const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjYzMjA2NzgxLCJpYXQiOjE2NjI2MDE5ODF9.oZQ1czou1KMZXCuhaXZlv5pMV5t4HGOyVDrbcJSELY3IWvUIDGzBC6KGm8P2oIt4_benZlLR1dOunREzRazhgA"
+const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjcwNDQ5NDI3LCJpYXQiOjE2NjMyNDk0Mjd9.NLeHDJer61PXzxTEQWi_TOfYU7HisoKUHOUiQpku_-NyoZgG2bxuxI-PAWywyRfqYoFWt8KEDbE4-rXGd-IHSA"
 
 var $ = require('jquery');
 window.$ = $;
@@ -135,6 +135,8 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
 
+    let originalQueryPieceName = queryPieceName;
+
     let last = queryPieceName.split(/[, ]+/).pop();
     if (last.includes(".") && /[a-z0-9]/i.test(last)) {
         queryCatalogNumber = last;
@@ -144,15 +146,7 @@ $(document.body).on('click', '.worklink' ,function(e){
         queryPieceName = queryPieceName.substring(0, queryPieceName.lastIndexOf(" "));
     }
 
-    let originalQueryPieceName = queryPieceName;
-
     // get rid of 'in E major'
-    if (queryPieceName.includes(' in ') && queryPieceName.includes(' major')){
-        queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' major').pop();
-    }
-    if (queryPieceName.includes(' in ') && queryPieceName.includes(' minor')){
-        queryPieceName = queryPieceName.split(" in ")[0] + ' ' + queryPieceName.split(' minor').pop();
-    }
     if (queryPieceName.includes(' in ')){
         queryPieceName = queryPieceName.split(" in ")[0];
     }
