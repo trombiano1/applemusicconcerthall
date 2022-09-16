@@ -369,6 +369,7 @@ function getResults(){
         if (request.readyState==4 && this.status == 200) {
             const data = JSON.parse(this.responseText);
             if (data.length === 0){
+            // if (true) { debug
                 $('#spinner2').addClass('d-none');
                 $('#progressContainer').removeClass('d-none');
                 $('#progressbar').attr('style', 'width: 2%;');
@@ -481,10 +482,14 @@ function getResults(){
                                 let maximum = -1;
 
                                 for (const [key, value] of Object.entries(counts)) {
-                                    if (value > maximum){
+                                    console.log(key, value);
+                                    if (value > maximum && key.length != 0){
                                         queryPieceRoles = key.split(',').filter(Boolean);
                                         maximum = value;
                                     }
+                                }
+                                if (maximum == -1) {
+                                    queryPieceRoles = ['Roles'];
                                 }
 
                                 setupTable();
