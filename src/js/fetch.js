@@ -192,6 +192,7 @@ $('#searchButton').on('click', () => {
     $('#tableContainer').removeClass('d-none');
     $('#spinner2').removeClass('d-none');
     $('#tableWrapper').addClass('d-none');
+    $('#explainbox').addClass('d-none');
 
     // disable buttons until finish
     $("#composer").attr('disabled', true);
