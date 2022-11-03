@@ -1,16 +1,15 @@
 "use strict";
 import { Modal } from 'bootstrap'
 import pLimit from 'p-limit';
-const fs = require('fs');
   
 const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjcwNDQ5NDI3LCJpYXQiOjE2NjMyNDk0Mjd9.NLeHDJer61PXzxTEQWi_TOfYU7HisoKUHOUiQpku_-NyoZgG2bxuxI-PAWywyRfqYoFWt8KEDbE4-rXGd-IHSA"
 
 var $ = require('jquery');
 window.$ = $;
 
-console.log(__("Hello World"));
-
 const COMPOSER_IDS = {'John Adams': 149, 'Thomas Adès': 130, 'Isaac Albéniz': 216, 'Tomaso Albinoni': 27, 'George Antheil': 108, 'Malcolm Arnold': 20, 'Milton Babbitt': 180, 'Johann Sebastian Bach': 87, 'Carl Philipp Emanuel Bach': 192, 'Johann Christian Bach': 109, 'Mily Balakirev': 21, 'Samuel Barber': 19, 'Béla Bartók': 125, 'Arnold Bax': 103, 'Ludwig van Beethoven': 145, 'Vincenzo Bellini': 51, 'Alban Berg': 210, 'Luciano Berio': 133, 'Hector Berlioz': 175, 'Leonard Bernstein': 135, 'Franz Berwald': 195, 'Heinrich Franz von Biber': 47, 'Harrison Birtwistle': 48, 'Georges Bizet': 68, 'Ernest Bloch': 106, 'Luigi Boccherini': 66, 'Alexander Borodin': 43, 'Pierre Boulez': 132, 'Joly Braga Santos': 153, 'Johannes Brahms': 80, 'Benjamin Britten': 169, 'Max Bruch': 184, 'Anton Bruckner': 2, 'Ferruccio Busoni': 84, 'Dietrich Buxtehude': 73, 'William Byrd': 86, 'John Cage': 56, 'Camargo Guarnieri': 159, 'Elliott Carter': 163, 'Emmanuel Chabrier': 123, 'Marc-Antoine Charpentier': 9, 'Ernest Chausson': 61, 'Carlos Chávez': 174, 'Luigi Cherubini': 120, 'Frédéric Chopin': 152, 'Aaron Copland': 170, 'Arcangelo Corelli': 139, 'John Corigliano': 144, 'François Couperin': 128, 'George Crumb': 31, 'César Cui': 71, "Vincent d'Indy": 127, 'Michael Daugherty': 81, 'Claude Debussy': 105, 'Léo Delibes': 193, 'Frederick Delius': 8, 'Josquin Des Prez': 50, 'Karl Ditters von Dittersdorf': 206, 'Ernst von Dohnányi': 112, 'Gaetano Donizetti': 89, 'John Dowland': 102, 'Guillaume Dufay': 82, 'Paul Dukas': 116, 'Maurice Duruflé': 91, 'Henri Dutilleux': 110, 'Antonín Dvořák': 189, 'Edward Elgar': 198, 'George Enescu': 38, 'Manuel de Falla': 37, 'Gabriel Fauré': 53, 'John Field': 74, 'César Franck': 12, 'Girolamo Frescobaldi': 58, 'George Gershwin': 136, 'Carlo Gesualdo': 14, 'Orlando Gibbons': 151, 'Alberto Ginastera': 32, 'Philip Glass': 95, 'Alexander Glazunov': 179, 'Reinhold Glière': 85, 'Mikhail Ivanovich Glinka': 156, 'Christoph Willibald von Gluck': 92, 'Karl Goldmark': 1, 'Antonio Carlos Gomes': 207, 'Henryk Górecki': 16, 'Morton Gould': 70, 'Charles Gounod': 29, 'Percy Grainger': 99, 'Enrique Granados': 76, 'Edvard Grieg': 162, 'Sofia Gubaidulina': 172, 'George Frideric Handel': 67, 'Howard Hanson': 42, 'Roy Harris': 201, 'Franz Joseph Haydn': 208, 'Hans Werner Henze': 155, 'Victor Herbert': 94, 'Paul Hindemith': 154, 'Vagn Holmboe': 158, 'Gustav Holst': 75, 'Arthur Honegger': 200, 'Johann Nepomuk Hummel': 30, 'Engelbert Humperdinck': 15, 'Jacques Ibert': 122, 'Charles Ives': 217, 'Leoš Janáček': 96, 'Clément Janequin': 23, 'Scott Joplin': 148, 'Dmitry Kabalevsky': 63, 'Aram Khachaturian': 218, 'Zoltán Kodály': 34, 'Erich Wolfgang Korngold': 7, 'Edouard Lalo': 59, 'Orlande de Lassus': 88, 'Ruggero Leoncavallo': 194, 'Léonin': 220, 'György Ligeti': 26, 'Franz Liszt': 197, 'Fernando Lopes-Graça': 119, 'Jean-Baptiste Lully': 10, 'Witold Lutoslawski': 142, 'Edward MacDowell': 114, 'Guillaume de Machaut': 157, 'Gustav Mahler': 77, 'Marin Marais': 204, 'Benedetto Marcello': 177, 'Alessandro Marcello': 187, 'Bohuslav Martinů': 11, 'Pietro Mascagni': 69, 'Jules Massenet': 124, 'Felix Mendelssohn': 147, 'Olivier Messiaen': 150, 'Francisco Mignone': 64, 'Darius Milhaud': 121, 'Ernest Moeran': 164, 'Claudio Monteverdi': 39, 'Wolfgang Amadeus Mozart': 196, 'Modest Mussorgsky': 181, 'Carl Nielsen': 52, 'Luigi Nono': 111, 'Jacob Obrecht': 28, 'Johannes Ockeghem': 117, 'Jacques Offenbach': 134, 'Carl Orff': 93, 'Johann Pachelbel': 115, 'Niccolò Paganini': 3, 'Giovanni Pierluigi da Palestrina': 214, 'Arvo Pärt': 5, 'Krzysztof Penderecki': 203, 'Giovanni Battista Pergolesi': 113, 'Pérotin': 219, 'Astor Piazzolla': 40, 'Francis Poulenc': 202, 'Michael Praetorius': 78, 'Sergei Prokofiev': 185, 'Giacomo Puccini': 146, 'Henry Purcell': 199, 'Sergei Rachmaninoff': 188, 'Jean-Philippe Rameau': 178, 'Einojuhani Rautavaara': 100, 'Maurice Ravel': 57, 'Max Reger': 72, 'Steve Reich': 176, 'Ottorino Respighi': 173, 'Wolfgang Rihm': 90, 'Nikolai Rimsky-Korsakov': 118, 'Joaquín Rodrigo': 215, 'Ned Rorem': 107, 'Gioachino Rossini': 60, 'Albert Roussel': 140, 'Camille Saint-Saëns': 45, 'Antonio Salieri': 143, 'Erik Satie': 104, 'Domenico Scarlatti': 97, 'Alessandro Scarlatti': 65, 'Franz Schmidt': 160, 'Alfred Schnittke': 137, 'Arnold Schoenberg': 62, 'Franz Schubert': 183, 'William Schuman': 24, 'Robert Schumann': 129, 'Heinrich Schütz': 191, 'Alexander Scriabin': 18, 'Dmitri Shostakovich': 46, 'Jean Sibelius': 186, 'Bedrich Smetana': 211, 'Fernando Sor': 212, 'Louis Spohr': 166, 'Carl Stamitz': 209, 'Wilhelm Stenhammar': 4, 'Karlheinz Stockhausen': 101, 'Richard Strauss': 171, 'Johann Strauss Jr': 165, 'Igor Stravinsky': 190, 'Josef Suk': 33, 'Jan Pieterszoon Sweelinck': 182, 'Karol Szymanowski': 49, 'Toru Takemitsu': 213, 'Thomas Tallis': 126, 'Giuseppe Tartini': 167, 'John Taverner': 54, 'Pyotr Ilyich Tchaikovsky': 79, 'Georg Philipp Telemann': 83, 'Michael Tippett': 13, 'Edgard Varèse': 22, 'Ralph Vaughan Williams': 36, 'Giuseppe Verdi': 35, 'Tomás Luis de Victoria': 205, 'Heitor Villa-Lobos': 55, 'Antonio Vivaldi': 98, 'Richard Wagner': 138, 'William Walton': 44, 'Carl Maria von Weber': 168, 'Anton Webern': 6, 'Kurt Weill': 131, 'Charles-Marie Widor': 41, 'Hugo Wolf': 161, 'Iannis Xenakis': 17, 'Eugene Ysaÿe': 141, 'Alexander von Zemlinsky': 25}
+
+const language_dict = {"Select genre...": "ジャンルを選択...", "Chamber": "室内楽", "Keyboard": "鍵盤楽器", "Orchestral": "オーケストラ", "Stage": "舞台", "Vocal": "歌", "Select work from below:": "以下から作品を選択...", "This is a new work for me! <br />Let me create the database.": "これまでの検索がない作品のようです！<br />データベースを作成します。", "Looking for more albums...": "まだまだありそうです", "Identifying works...": "作品を識別しています", "Matching performers...": "奏者を分類しています"};
 
 // variables
 
@@ -84,7 +83,7 @@ var resultTable = $('#resultTable').DataTable({
 
 // Search UI -------------------------------------------------------------------------
 // Composer selected
-$('#composer').on('input', () => {
+$('#composer').on('change', () => {
     // hide others
     $('#genreContainer').addClass('d-none');
     $('#workContainer').addClass('d-none');
@@ -121,7 +120,7 @@ $('#composer').on('input', () => {
 $('#genre').on('change', function() {
     $('#genre').attr('style', 'color: #292b2c');
     $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
-    $('#selectedWork').html("Select work from below:");
+    $('#selectedWork').html(`${language_dict["Select work from below:"]}`);
     $('#spinner').removeClass('d-none');
     listWorks(document.getElementById('genre').value);
     // $('#worksCollapse').collapse();
@@ -175,7 +174,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceName.replace(/\s+$/, '');
 
     // set button name
-    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId}, Work ID: ${queryPieceId} will be used for identification.</small>`);
+    $('#ids').html(`<small>[Open Opus] Composer ID: ${queryComposerId}, Work ID: ${queryPieceId}</small>`);
     $('#ids').removeClass('d-none');
     $('#searchQueryCustom').val(queryComposerName + " " + queryPieceName);
     $('#customQuery').removeClass('d-none');
@@ -300,10 +299,14 @@ function getGenres(){
     request.onreadystatechange = function () {
         if (request.readyState==4 && this.status == 200) {
             const data = JSON.parse(this.responseText);
-            let HTMLString = `<option value="Select genre" disabled selected>Select genre...</option>`;
+            let HTMLString = `<option value="Select genre" disabled selected>${language_dict["Select genre..."]}</option>`;
             data['genres'].forEach(genre => {
                 if (genre != "Popular" && genre != "Recommended"){
-                    HTMLString += `<option value="${genre}">${genre}</option>`;
+                    if (language_dict[genre] !== undefined) {
+                        HTMLString += `<option value="${genre}">${language_dict[genre]}</option>`;
+                    } else {
+                        HTMLString += `<option value="${genre}">${genre}</option>`;
+                    }
                 }
             });
             document.getElementById('genre').innerHTML = HTMLString;
@@ -375,7 +378,7 @@ function getResults(){
                 $('#spinner2').addClass('d-none');
                 $('#progressContainer').removeClass('d-none');
                 $('#progressbar').attr('style', 'width: 2%;');
-                $('#progressText').html("This is a new work for me! <br />Let me create the database.");
+                $('#progressText').html(`${language_dict["This is a new work for me! <br />Let me create the database."]}`);
                 getAlbums().then(
                     function(value){
                         console.log(value.length);
@@ -908,13 +911,14 @@ function getSongCandidates(offset, includeCatalog){
                         $('#progressbar').html(Object.keys(idHistory).length);
                         $('#progressbar').attr('style', `width: ${Math.min(doneAlbums * 45 / totalAlbums, 45)}%;`);
                         if (doneAlbums > 200) {
-                            $('#progressText').html('Looking for more albums...');
+                            $('#progressText').html(`${language_dict["Looking for more albums..."]}`);
                         }
                         if (doneAlbums > 400) {
-                            $('#progressText').html("I'm sorry everything is in English. <br />日本語版も気が向いたら作ります。");
+                            $('#progressText').html("曲名の翻訳は自動化が難しいので、Wikipedia等で英語名を検索して下さいm(_ _)m");
                         }
                         if (doneAlbums > 600) {
-                            $('#progressText').html("Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me a coffee</a>☕️...?");
+                            $('#progressText').html("Apple Developer Programは年間1万3000円もします。 もしよければ <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>開発協力</a> か <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'>コーヒーを1杯</a> ...!");
+                                // "Apple Developer Program is $99 = ￥13,000 / year... <br /> Consider <a href='https://github.com/trombiano1/applemusicconcerthall' target='_blank'>contributing</a> / <a href='https://www.buymeacoffee.com/trombiano1' target='_blank'> buying me a coffee</a>☕️...?");
                         }
                         resolve([values, cnt]);
                     }
@@ -973,7 +977,7 @@ function getSongsInAlbum(album){
 
 // Open Opus ----------------------------------------------------------------------------
 function guessWorks(guessAPIArray, queryPieceId){
-    $('#progressText').html('Identifying works...');
+    $('#progressText').html(`${language_dict['Identifying works...']}`);
     return new Promise(function(resolve){
         $.ajax({
             url: `https://quiet-savannah-18236.herokuapp.com/https://api.openopus.org/dyn/work/guess?works=${encodeURIComponent(JSON.stringify(guessAPIArray))}`,
@@ -997,7 +1001,7 @@ function guessWorks(guessAPIArray, queryPieceId){
                 // console.log(doneGuesses, totalGuesses);
                 $('#progressbar').attr('style', `width: ${Math.min(doneGuesses / totalGuesses * 40 + 45, 85)}%;`);
                 $('#progressbar').html(`${Math.round(Math.min(doneGuesses / totalGuesses * 40 + 45, 85))}%`);
-                $('#progressText').html('Identifying works...');
+                $('#progressText').html(`${language_dict['Identifying works...']}`);
                 resolve(found);
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -1010,7 +1014,7 @@ function guessWorks(guessAPIArray, queryPieceId){
 
 function getRoles(rolesString){
     return new Promise(function(resolve){
-        $('#progressText').html('Matching performers...');
+        $('#progressText').html(`${language_dict['Matching performers...']}`);
         if (rolesString == "-1"){
             resolve("");
         }
@@ -1039,7 +1043,7 @@ function getRoles(rolesString){
                     doneRoles++;
                     $('#progressbar').attr('style', `width: ${Math.min(doneRoles / totalRoles * 18 + 85, 100)}%;`);
                     $('#progressbar').html(`${Math.round(Math.min(doneRoles / totalRoles * 18 + 85, 100))}%`);
-                    $('#progressText').html('Matching performers...');
+                    $('#progressText').html(`${language_dict['Matching performers...']}`);
                     resolve(result);
                 }
             },
