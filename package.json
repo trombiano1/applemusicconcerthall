@@ -2,7 +2,7 @@
   "name": "ClassicalApple",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "start": "webpack serve --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,6 +26,7 @@
     "@zainulbr/i18n-webpack-plugin": "^2.0.3",
     "autoprefixer": "^10.4.8",
     "css-loader": "^6.7.1",
+    "multi-lang": "^0.1.2",
     "postcss-loader": "^7.0.1",
     "sass": "^1.54.5",
     "sass-loader": "^13.0.2",
@@ -43,7 +44,9 @@
     "cors": "^2.8.5",
     "datatables.net-bs5": "^1.12.1",
     "express": "^4.18.1",
-    "fs": "0.0.1-security",
+    "fs": "^0.0.1-security",
+    "glob": "^8.0.3",
+    "http": "^0.0.1-security",
     "jquery": "^3.6.1",
     "jsdom": "^20.0.0",
     "p-limit": "^4.0.0",
