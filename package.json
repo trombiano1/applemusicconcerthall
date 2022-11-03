@@ -2,7 +2,7 @@
   "name": "ClassicalApple",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "en.main.js",
   "scripts": {
     "start": "webpack serve --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
