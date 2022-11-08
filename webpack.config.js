@@ -2,6 +2,14 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+var express = require('express');
+var http = require('http');
+var enforce = require('express-sslify');
+ 
+var app = express();
+
+app.use(enforce.HTTPS({ trustProtoHeader: true }));
+
 module.exports = {
   entry: './src/js/main.js',
   output: {
