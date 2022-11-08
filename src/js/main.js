@@ -11,18 +11,30 @@ window.$ = $;
 
 // console.log(student);
 
+console.log(window.location.pathname);
+
+$("body").css("display", "none");
+
 $.getJSON('lang.json', (data) => {
     var language_dict = JSON.parse(JSON.stringify(data));
     for (var key of Object.keys(language_dict)) {
 
         // console.log(__("{{Apple Music Concerthall}}"));
         // console.log(__`${result[0].toString()}`);
-
-        document.body.innerHTML = document.body.innerHTML.replace("{{" + key + "}}", language_dict[key]);
+        
+        if (window.location.pathname == "/jp.html") {
+            document.body.innerHTML = document.body.innerHTML.replace("{{" + key + "}}", language_dict[key]);
+        } else {
+            document.body.innerHTML = document.body.innerHTML.replace("{{" + key + "}}", key);
+        }
 
         // console.log(key);
     }
     require('./fetch.js');
+    document.getElementsByTagName("html")[0].style.visibility = "visible";
+    // $(window).bind("load", function() {
+    // $("body").fadeIn(100);
+    //  });
     // document.body.innerHTML = document.body.innerHTML.replaceAll("{{Apple Music Concerthall}}", 'hi');
 });
 

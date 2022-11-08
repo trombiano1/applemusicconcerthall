@@ -1,5 +1,6 @@
 // https://medium.com/@sreejithezhakkad/how-to-start-a-web-app-project-using-bootstrap-with-npm-webpack-185e510a782e
 const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: './src/js/main.js',
@@ -45,5 +46,17 @@ module.exports = {
         ]
       }
     ]
-  }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+        title: 'en',
+        filename: 'index.html',
+        template: "./html/index.html",
+    }),
+    new HtmlWebpackPlugin({
+        title: 'jp',
+        filename: 'jp.html',
+        template: "./html/index.html",
+    })
+  ]
 }
