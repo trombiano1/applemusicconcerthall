@@ -31,6 +31,11 @@ $.getJSON('lang.json', (data) => {
         // console.log(key);
     }
     require('./fetch.js');
+    if (window.location.pathname == "/jp.html") {
+        document.getElementById("navbarDropdown").innerHTML = "  日本語  ";
+    } else {
+        document.getElementById("navbarDropdown").innerHTML = "  English  ";
+    }
     document.getElementsByTagName("html")[0].style.visibility = "visible";
     // $(window).bind("load", function() {
     // $("body").fadeIn(100);
