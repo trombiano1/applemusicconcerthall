@@ -116,6 +116,7 @@ $(document.body).on('click', '.composerlink', function(e) {
     $('#searchQueryCustom').attr('style', 'color: #999');
     $('#genre').attr('style', 'color: #999');
     $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
+    $("#selectedComposer").attr('style', 'color: #000; background-color: #fff !important; text-decoration: none !important;');
     $('#composerDescription').addClass('d-none');
     getGenres();
 });
@@ -203,6 +204,7 @@ $('#searchButton').on('click', () => {
     $("#genre").attr('disabled', true);
     $("#selectedWork").attr('data-bs-toggle', '');
     $("#selectedWork").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
+    $("#selectedComposer").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
     $("#searchQueryCustom").attr('disabled', true);
 
     query = $('#searchQueryCustom').val();
@@ -754,6 +756,7 @@ function setupTable(){
     $("#genre").attr('disabled', false);
     $("#selectedWork").attr('data-bs-toggle', 'collapse');
     $("#selectedWork").attr('style', 'text-decoration: none !important;');
+    $("#selectedComposer").attr('style', 'text-decoration: none !important;');
     $("#searchQueryCustom").attr('disabled', false);
 
     // show table
