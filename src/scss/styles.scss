@@ -20,6 +20,12 @@ body {
     text-decoration: none !important;
 }
 
+// UI
+.nameInitialLabel {
+    pointer-events: none;
+    color: #999 !important;
+}
+
 // pagination, button color -------------------------
 
 .paginate_button:not(.disabled) a{

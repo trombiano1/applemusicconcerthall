@@ -64,9 +64,19 @@
             <span class="input-group-text" id="composerLabel">{{Composer}}</span>
             <!-- <input type="text" class="form-control" placeholder="{{Start typing...}}" aria-label="Start typing..." aria-describedby="composerLabel"  list="composersdatalist" id="composer"> -->
 
-            <select class="form-select" aria-label="{{Start typing...}}" aria-describedby="composerLabel" id="composer">
-            </select>
+            <a style="text-decoration: none !important; color: #999 !important;" class="form-control" data-bs-toggle="collapse" href="#composerCollapse" role="button" aria-expanded="false" aria-controls="composerCollapse" id="selectedComposer" aria-describedby="composerLabel" >
+                {{Select composer from below:}}
+            </a>
+
+            <!-- <select class="form-select" aria-label="{{Start typing...}}" aria-describedby="composerLabel" id="composer"> -->
+            <!-- </select> -->
         </div>
+
+        <div class="input-group collapse mb-3 ms-2" id="composerCollapse">
+            <div class="list-group"  id="composerList">
+            </div>
+        </div>
+
         <p class="text-secondary ms-3" id="composerDescription">{{Select a composer from the available options.}} </p>
         
         <div class="input-group mb-3 d-none" id="genreContainer">
