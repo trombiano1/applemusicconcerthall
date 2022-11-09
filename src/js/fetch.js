@@ -88,6 +88,35 @@ var resultTable = $('#resultTable').DataTable({
 });
 
 // Search UI -------------------------------------------------------------------------
+// Composer searchd
+$(document.body).on('input', '#composerSearch', function() {
+    var val1 = $(this).val();
+    var val3 = $(this).val().replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    var composers = document.getElementById("composerList").getElementsByTagName('a');
+    for (let i = 0; i < composers.length; i++) {
+        let c1 = composers[i].innerHTML.toLowerCase();
+        let c2 = composers[i].getAttribute('value').toLowerCase();
+        let c3 = composers[i].innerHTML.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        let c4 = composers[i].getAttribute('value').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        if (c3.includes(val3) || c4.includes(val3) || c1.includes(val1) || c2.includes(val1)){
+            // console.log(composers[i].innerHTML)
+            composers[i].classList.remove("d-none");
+            composers[i].style.visibility = "none";
+            // classList.remove("d-none");
+        } else {
+            composers[i].classList.add("d-none");
+            composers[i].style.visibility = "visible";
+            // composers[i].classList.remove("list-group-item");
+            // composers[i].classList.remove("list-group-item-action");
+        }
+    }
+});
+
+$('#composerSearch').on('click', function() {
+    var composers = $("composerList").children();
+    // console.log(composers);
+});
+
 // Composer selected
 // $('#composer').on('change', () => {
 $(document.body).on('click', '.composerlink', function(e) {

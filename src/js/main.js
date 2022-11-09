@@ -48,6 +48,17 @@ $.get("./composers_en.html", function(result)
     if (window.location.pathname != "/jp.html") {
         $("#composerList").html(result)
     }
+
+    $("#composerList a").each(function(index) {
+        $(this).css("border-top-left-radius", "0px");
+        $(this).css("border-top-right-radius", "0px");
+        $(this).css("border-bottom-left-radius", "0px");
+        $(this).css("border-bottom-right-radius", "0px");
+        $(this).css("border-top", "none");
+        $(this).css("border-left", "none");
+        $(this).css("border-right", "none");
+
+    });
 });
 
 $.get("./composers_jp.html", function(result)
@@ -55,6 +66,28 @@ $.get("./composers_jp.html", function(result)
     if (window.location.pathname == "/jp.html") {
         $("#composerList").html(result)
     }
+
+    $("#composerList a").each(function(index) {
+        $(this).css("border-top-left-radius", "0px");
+        $(this).css("border-top-right-radius", "0px");
+        $(this).css("border-bottom-left-radius", "0px");
+        $(this).css("border-bottom-right-radius", "0px");
+        $(this).css("border-top", "none");
+        $(this).css("border-left", "none");
+        $(this).css("border-right", "none");
+    });
+
+    // $("#composerList a").each(function(index) {
+    //     if(index == 0){
+    //         $(this).css("border-top-left-radius", "10px");
+    //         $(this).css("border-top-right-radius", "10px");
+    //         $(this).css("border-top", "1px solid #ddd");
+    //     }
+    //     if(index == $(".list-group-item:visible").length - 1){
+    //         $(this).css("border-bottom-left-radius", "10px");
+    //         $(this).css("border-bottom-right-radius", "10px");
+    //     }
+    // });
 });
 
 // document.body.innerHTML = document.body.innerHTML.replaceAll("{{Apple Music Concerthall}}", 'hi');
