@@ -43,6 +43,20 @@ $.getJSON('lang.json', (data) => {
     // document.body.innerHTML = document.body.innerHTML.replaceAll("{{Apple Music Concerthall}}", 'hi');
 });
 
+$.get("./composers_en.html", function(result)
+{
+    if (window.location.pathname != "/jp.html") {
+        $("#composer").html(result)
+    }
+});
+
+$.get("./composers_jp.html", function(result)
+{
+    if (window.location.pathname == "/jp.html") {
+        $("#composer").html(result)
+    }
+});
+
 // document.body.innerHTML = document.body.innerHTML.replaceAll("{{Apple Music Concerthall}}", 'hi');
 
 // var reg = /{{.*}}/g;
