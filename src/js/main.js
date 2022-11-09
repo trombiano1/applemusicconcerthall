@@ -36,6 +36,21 @@ $.getJSON('lang.json', (data) => {
     } else {
         document.getElementById("navbarDropdown").innerHTML = "  English  ";
     }
+
+    console.log($("#historycards").html());
+    if ($("#historycards").html() == "") {
+        try {
+            let history = JSON.parse(decodeURIComponent(document.cookie.split("=")[1]));
+            console.log(history);
+
+            for (let i = 0; i < history.length; i++) {
+                $("#historycards").html($("#historycards").html() + "<div queryComposerId='" + history[i][2] + "' queryComposerName='" + history[i][3] + "' queryPieceId = '" + history[i][4] + "' queryCatalogNumber='" + history[i][5] + "' query='" + history[i][6] + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + history[i][1] + "</div><div style=\"cursor: pointer;\" class='cardComposer' style='color: #444 !important;'><small>" + history[i][0] + "</small></div><span class=\"close\"></span></div>");
+            }
+        } catch (error) {
+
+        }
+    }
+
     document.getElementsByTagName("html")[0].style.visibility = "visible";
     // $(window).bind("load", function() {
     // $("body").fadeIn(100);
@@ -89,6 +104,7 @@ $.get("./composers_jp.html", function(result)
     //     }
     // });
 });
+{/* <div class="card card-body">Card</div> */}
 
 // document.body.innerHTML = document.body.innerHTML.replaceAll("{{Apple Music Concerthall}}", 'hi');
 

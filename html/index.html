@@ -4,7 +4,7 @@
     <script src="jquery.js"></script> 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Concerthall Beta</title>
+    <title>Concerthall</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.2/css/fontawesome.min.css" integrity="sha384-X8QTME3FCg1DLb58++lPvsjbQoCT9bp3MsUU3grbIny/3ZwUJkRNO8NPW6zqzuW9" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <style>
@@ -40,7 +40,7 @@
         <a class="navbar-brand mb-1 mt-1" href="#">
             <div class="container-md text-light ms-3">
                 <img src="./images/logo.png" width="30" height="30" alt="">
-                <span class="d-none d-sm-inline-block">{{Apple Music Concerthall}}</span>
+                <span class="">Concerthall</span>
             </div>
         </a>
         <div class="collapse navbar-collapse text-right flex-grow-0 ms-auto me-3" id="navbarNavDropdown">
@@ -58,8 +58,7 @@
         </div>
     </nav>
 
-    <!-- Modal -->
-    <div class="container-md shadow p-3 mt-4 mb-5 bg-body rounded">
+    <div class="container-md shadow p-3 mt-4 mb-3 bg-body rounded">
         <div class="input-group mt-3 mb-3">
             <span class="input-group-text" id="composerLabel">{{Composer}}</span>
             <!-- <input type="text" class="form-control" placeholder="{{Start typing...}}" aria-label="Start typing..." aria-describedby="composerLabel"  list="composersdatalist" id="composer"> -->
@@ -130,6 +129,13 @@
         
         <button type="button" class="btn btn-danger d-none" id="searchButton">{{Search}}</button>
     </div>
+
+    <div class="container-md .bg-transparent mb-3">
+        <div class="container-fluid py-2 overflow-auto">
+            <div class="d-flex flex-row flex-nowrap" id="historycards"></div>
+        </div>
+    </div>
+
     
     <div class="container-md mw-75 shadow p-3 mb-5 bg-body rounded" id="explainbox">
         <div class="mb-5 text-justify">
