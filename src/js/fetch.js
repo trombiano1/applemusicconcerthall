@@ -100,26 +100,27 @@ $('#composer').on('change', () => {
     $('#customQuery').addClass('d-none');
     queryCatalogNumber = "";
 
-    //fs.readFileSync(ファイルのパス, 文字コード, コールバック関数)
-    // 書き込むデータ準備
 
     var val = document.getElementById("composer").value;
-    var opts = document.getElementById('composersdatalist').childNodes;
-    for (var i = 0; i < opts.length; i++) {
-      if (opts[i].value === val) {
-        // An item was selected from the list!
-        // yourCallbackHere()
-        queryComposerId = COMPOSER_IDS[opts[i].value];
-        queryComposerName = opts[i].value.split(/ /).pop();
-        $("#spinner").removeClass("d-none");
-        $('#searchQueryCustom').attr('style', 'color: #999');
-        $('#genre').attr('style', 'color: #999');
-        $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
-        $('#composerDescription').addClass('d-none');
-        getGenres();
-        break;
-      }
-    }
+
+    queryComposerId = COMPOSER_IDS[val];
+    console.log(queryComposerId);
+    queryComposerName = val.split(/ /).pop();
+    $("#spinner").removeClass("d-none");
+    $('#searchQueryCustom').attr('style', 'color: #999');
+    $('#genre').attr('style', 'color: #999');
+    $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
+    $('#composerDescription').addClass('d-none');
+    getGenres();
+
+    // var val = document.getElementById("composer").value;
+    // for (var i = 0; i < COMPOSER_IDS.length; i++) {
+    //   if (opts[i].value === val) {
+    //     // An item was selected from the list!
+    //     // yourCallbackHere()
+    //     break;
+    //   }
+    // }
 });
 
 // Genre selected
