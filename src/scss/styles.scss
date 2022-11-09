@@ -26,6 +26,28 @@ body {
     color: #999 !important;
 }
 
+// cookie
+.card-body {
+    min-height: 80px;
+    min-width: 250px;
+    max-width: 250px;
+    width: 250px;
+    margin-right: 5px;
+    background: rgba(255, 255, 255, 0.80);
+    position: relative;
+    display: inline-block;
+}
+
+.close:before {
+    content: '✕';
+}
+.close {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    cursor: pointer;
+}
+
 // pagination, button color -------------------------
 
 .paginate_button:not(.disabled) a{

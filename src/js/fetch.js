@@ -25,10 +25,13 @@ let composerIdHistory = {};
 let idHistory = {};
 
 // query
+let querySearchTerm;
 let queryComposerName;
+let queryComposerValue;
 let queryComposerId;
 let queryPieceName;
 let queryPieceId;
+let originalQueryPieceName;
 let query = "";
 let queryCatalogNumber = "";
 let queryPieceRoles = [];
@@ -88,7 +91,7 @@ var resultTable = $('#resultTable').DataTable({
 });
 
 // Search UI -------------------------------------------------------------------------
-// Composer searchd
+// Composer searched
 $(document.body).on('input', '#composerSearch', function() {
     var val1 = $(this).val();
     var val3 = $(this).val().replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -134,6 +137,7 @@ $(document.body).on('click', '.composerlink', function(e) {
     $('#composerCollapse').removeClass('show');
 
     var val = $(this).attr('value');
+    queryComposerValue = val;
     var name = $(this).html();
 
     $('#selectedComposer').html(name);
@@ -170,7 +174,7 @@ $(document.body).on('click', '.worklink' ,function(e){
     queryPieceId = parseInt($(this).attr('value'));
     queryPieceName = $(this).html();
 
-    let originalQueryPieceName = queryPieceName;
+    originalQueryPieceName = queryPieceName;
 
     let last = queryPieceName.split(/[, ]+/).pop();
     if (last.includes(".") && /[a-z0-9]/i.test(last)) {
@@ -220,9 +224,39 @@ $('#searchQueryCustom').on('click', function () {
     $('#searchQueryCustom').attr('style', 'color: #000');
 });
 
+
+// cookies
+function deleteAllCookies() {
+    var cookies = document.cookie.split(";");
+
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf("=");
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
+
 // Search button pressed
+function includesHistory(oldhistory, newhistory) {
+    for (let i = 0; i < oldhistory.length; i++) {
+        let flag = true;
+        for (let j = 0; j < newhistory.length; j++) {
+            if (newhistory[j] == "!any!") {
+                continue;
+            }
+            if (oldhistory[i][j] != newhistory[j]) {
+                flag = false;
+            }
+        }
+        if (flag) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 $('#searchButton').on('click', () => {
-    // show table container and progress
     $('#tableContainer').removeClass('d-none');
     $('#spinner2').removeClass('d-none');
     $('#tableWrapper').addClass('d-none');
@@ -238,7 +272,73 @@ $('#searchButton').on('click', () => {
 
     query = $('#searchQueryCustom').val();
 
+    let history = [];
+    console.log(decodeURIComponent(document.cookie.split("=")[1]));
+    try {
+        history = JSON.parse(decodeURIComponent(document.cookie.split("=")[1]));
+    } catch (error) {
+        deleteAllCookies();
+    }
+    let newhistory = [$("#selectedComposer").html(), originalQueryPieceName, queryComposerId, queryComposerName, queryPieceId, queryCatalogNumber, query];
+
+    
+    let c = includesHistory(history, newhistory);
+    if (c == -1) {
+        history.unshift(newhistory);
+    } else {
+        history.splice(c, 1); // 2nd parameter means remove one item only
+        history.unshift(newhistory);
+    }
+    
+    while (byteCount("history=" + encodeURIComponent(JSON.stringify(history))) > 4000) {
+        history.pop();
+    }
+    console.log("memo");
+    console.log(byteCount("history=" + encodeURIComponent(JSON.stringify(history))));
+    // show table container and progress
+    // document.cookie = "username=John Doe";
+    document.cookie = "history=" + encodeURIComponent(JSON.stringify(history));
+    console.log(decodeURIComponent(document.cookie.split("=")[1]));
+
+    // $("#historycards").html("<div queryComposerId='" + queryComposerId + "' queryComposerName='" + queryComposerName + "' queryPieceId = '" + queryPieceId + "' queryCatalogNumber='" + queryCatalogNumber + "' query='" + query + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + originalQueryPieceName + "</div><div class='cardComposer' style='color: #444 !important; cursor: pointer;'><small>" + queryComposerName + "</small></div><span class=\"close\"></span></div>" + $("#historycards").html());
+    $("#historycards").html("<div queryComposerId='" + queryComposerId + "' queryComposerName='" + queryComposerName + "' queryPieceId = '" + queryPieceId + "' queryCatalogNumber='" + queryCatalogNumber + "' query='" + query + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + originalQueryPieceName + "</div><div style=\"cursor: pointer;\" class='cardComposer' style='color: #444 !important;'><small>" + queryComposerName + "</small></div></div>" + $("#historycards").html());
+
     getResults();
+});
+
+function byteCount(s) {
+    return encodeURI(s).split(/%..|./).length - 1;
+}
+
+$('.close').on('click', function() {
+    console.log($(this).parent());
+    let history = [];
+    console.log(decodeURIComponent(document.cookie.split("=")[1]));
+    try {
+        history = JSON.parse(decodeURIComponent(document.cookie.split("=")[1]));
+    } catch (error) {
+        deleteAllCookies();
+    }
+    let newhistory = ["!any!", "!any!", $(this).parent().attr('queryComposerId'), "!any!", $(this).parent().attr('queryPieceId'), "!any!", "!any!"];
+
+    let c = includesHistory(history, newhistory);
+    if (c == -1) {
+        // history.unshift(newhistory);
+    } else {
+        history.splice(c, 1); // 2nd parameter means remove one item only
+        // history.unshift(newhistory);
+    }
+    
+    while (byteCount("history=" + encodeURIComponent(JSON.stringify(history))) > 4000) {
+        history.pop();
+    }
+    console.log("memo");
+    console.log(byteCount("history=" + encodeURIComponent(JSON.stringify(history))));
+    // show table container and progress
+    // document.cookie = "username=John Doe";
+    document.cookie = "history=" + encodeURIComponent(JSON.stringify(history));
+    console.log(decodeURIComponent(document.cookie.split("=")[1]));
+    $(this).parent().remove();
 });
 
 // Other UI------------------
@@ -383,6 +483,33 @@ function listWorks(genre){
 }
 
 // Get results logic ========================================================================================
+// for cookies
+function getCookieResults(queryComposerId, queryComposerName, queryPieceId, queryCatalogNumber, query) {
+    alert("yes");
+    // console.log(queryComposerId, queryComposerName, queryPieceId, queryCatalogNumber, query);
+}
+
+$(document.body).on('click', '.cardComposer, .cardPiece', function(e) {
+    queryComposerId = $(this).parent().attr('querycomposerid');
+    queryComposerName = $(this).parent().attr('querycomposername');
+    queryPieceId = $(this).parent().attr('querypieceid');
+    queryCatalogNumber = $(this).parent().attr('querycatalognumber');
+    query = $(this).parent().attr('query');
+    $('#tableContainer').removeClass('d-none');
+    $('#spinner2').removeClass('d-none');
+    $('#tableWrapper').addClass('d-none');
+    $('#explainbox').addClass('d-none');
+
+    // disable buttons until finish
+    $("#composer").attr('disabled', true);
+    $("#genre").attr('disabled', true);
+    $("#selectedWork").attr('data-bs-toggle', '');
+    $("#selectedWork").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
+    $("#selectedComposer").attr('style', 'background-color: #EAECEF !important; text-decoration: none !important;');
+    $("#searchQueryCustom").attr('disabled', true);
+    getResults();
+});
+
 function getResults(){
     // reset progress bar
     totalAlbums = 400;
@@ -396,6 +523,8 @@ function getResults(){
     console.log(queryComposerId);
     console.log(queryComposerName);
     console.log(queryPieceId);
+    console.log(queryCatalogNumber);
+    console.log(query);
     resultTable.clear().draw();
 
     // try history !
