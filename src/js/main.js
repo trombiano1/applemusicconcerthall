@@ -46,14 +46,14 @@ $.getJSON('lang.json', (data) => {
 $.get("./composers_en.html", function(result)
 {
     if (window.location.pathname != "/jp.html") {
-        $("#composer").html(result)
+        $("#composerList").html(result)
     }
 });
 
 $.get("./composers_jp.html", function(result)
 {
     if (window.location.pathname == "/jp.html") {
-        $("#composer").html(result)
+        $("#composerList").html(result)
     }
 });
 

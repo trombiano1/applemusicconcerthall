@@ -89,8 +89,10 @@ var resultTable = $('#resultTable').DataTable({
 
 // Search UI -------------------------------------------------------------------------
 // Composer selected
-$('#composer').on('change', () => {
+// $('#composer').on('change', () => {
+$(document.body).on('click', '.composerlink', function(e) {
     // hide others
+    $("#selectedComposer").attr('style', 'color: #292b2c; text-decoration: none !important;');
     $('#genreContainer').addClass('d-none');
     $('#workContainer').addClass('d-none');
     $('#worksCollapse').removeClass('show');
@@ -100,8 +102,12 @@ $('#composer').on('change', () => {
     $('#customQuery').addClass('d-none');
     queryCatalogNumber = "";
 
+    $('#composerCollapse').removeClass('show');
 
-    var val = document.getElementById("composer").value;
+    var val = $(this).attr('value');
+    var name = $(this).html();
+
+    $('#selectedComposer').html(name);
 
     queryComposerId = COMPOSER_IDS[val];
     console.log(queryComposerId);
@@ -112,15 +118,6 @@ $('#composer').on('change', () => {
     $("#selectedWork").attr('style', 'color: #999; background-color: #fff !important; text-decoration: none !important;');
     $('#composerDescription').addClass('d-none');
     getGenres();
-
-    // var val = document.getElementById("composer").value;
-    // for (var i = 0; i < COMPOSER_IDS.length; i++) {
-    //   if (opts[i].value === val) {
-    //     // An item was selected from the list!
-    //     // yourCallbackHere()
-    //     break;
-    //   }
-    // }
 });
 
 // Genre selected
