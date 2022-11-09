@@ -301,7 +301,7 @@ $('#searchButton').on('click', () => {
     console.log(decodeURIComponent(document.cookie.split("=")[1]));
 
     // $("#historycards").html("<div queryComposerId='" + queryComposerId + "' queryComposerName='" + queryComposerName + "' queryPieceId = '" + queryPieceId + "' queryCatalogNumber='" + queryCatalogNumber + "' query='" + query + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + originalQueryPieceName + "</div><div class='cardComposer' style='color: #444 !important; cursor: pointer;'><small>" + queryComposerName + "</small></div><span class=\"close\"></span></div>" + $("#historycards").html());
-    $("#historycards").html("<div queryComposerId='" + queryComposerId + "' queryComposerName='" + queryComposerName + "' queryPieceId = '" + queryPieceId + "' queryCatalogNumber='" + queryCatalogNumber + "' query='" + query + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + originalQueryPieceName + "</div><div style=\"cursor: pointer;\" class='cardComposer' style='color: #444 !important;'><small>" + queryComposerName + "</small></div></div>" + $("#historycards").html());
+    $("#historycards").html("<div queryComposerId='" + queryComposerId + "' queryComposerName='" + queryComposerName + "' queryPieceId = '" + queryPieceId + "' queryCatalogNumber='" + queryCatalogNumber + "' query='" + query + "' class=\"card card-body me-3\"><div class='cardPiece' style=\"cursor: pointer;\">" + originalQueryPieceName + "</div><div style=\"cursor: pointer;\" class='cardComposer' style='color: #444 !important;'><small>" + $("#selectedComposer").html() + "</small></div><span class=\"close\"></span></div>" + $("#historycards").html());
 
     getResults();
 });
@@ -310,7 +310,8 @@ function byteCount(s) {
     return encodeURI(s).split(/%..|./).length - 1;
 }
 
-$('.close').on('click', function() {
+// $('.close').on('click', function() {
+$(document.body).on('click', '.close', function(e) {
     console.log($(this).parent());
     let history = [];
     console.log(decodeURIComponent(document.cookie.split("=")[1]));
