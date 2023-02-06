@@ -2,7 +2,7 @@
 import { Modal } from 'bootstrap'
 import pLimit from 'p-limit';
   
-const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjcwNDQ5NDI3LCJpYXQiOjE2NjMyNDk0Mjd9.NLeHDJer61PXzxTEQWi_TOfYU7HisoKUHOUiQpku_-NyoZgG2bxuxI-PAWywyRfqYoFWt8KEDbE4-rXGd-IHSA"
+const developerToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IlBOOEc2UTM5VzYifQ.eyJpc3MiOiIzNDQ5MjhYNTJQIiwiZXhwIjoxNjgyODk1NzY4LCJpYXQiOjE2NzU2OTU3Njh9.waZ2XMHhojYbpmrTXWanH9ZLoK4iAVB1_kmoOrfG56EW9abQug8cwBtEU3ApayQ-mz9vZXxaYqZYSf1qywRmoA"
 
 var $ = require('jquery');
 window.$ = $;
